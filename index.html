@@ -10,364 +10,421 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0f0f13;color:#e8e6f0;font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
 input,select,textarea{-webkit-appearance:none;appearance:none;font-family:inherit}
+.card{background:#18181f;border:1px solid #2a2a38;border-radius:12px;padding:14px;margin-bottom:13px}
+.label{font-size:11px;font-weight:700;letter-spacing:.08em;color:#9ca3af;text-transform:uppercase;margin-bottom:5px;display:block}
+.inp{width:100%;background:#0f0f13;border:1px solid #2a2a38;border-radius:8px;color:#e8e6f0;padding:8px 10px;font-size:14px;outline:none}
+.btn-primary{background:#c084fc;color:#0f0f13;border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer;width:100%}
+.btn-sm{background:#23232e;color:#9ca3af;border:none;border-radius:8px;padding:5px 10px;font-weight:600;font-size:12px;cursor:pointer}
+.btn-ghost{background:#23232e;color:#9ca3af;border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer}
+.btn-danger{background:#2a1a1a;color:#f87171;border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer}
+.row{display:flex;gap:8px}
+.tab-bar{display:flex;background:#18181f;border-bottom:1px solid #2a2a38}
+.tab{flex:1;padding:11px 2px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:none;color:#6b7280;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:#c084fc;border-bottom:2px solid #c084fc}
+.badge{background:#22c55e22;color:#22c55e;border-radius:8px;padding:8px 14px;text-align:center;font-weight:600;font-size:13px;margin-bottom:12px}
+.body{padding:14px 13px;max-width:520px;margin:0 auto}
+.icon-btn{background:none;border:none;color:#4b5563;cursor:pointer;font-size:16px;padding:0 2px}
+.drop-row{display:flex;align-items:center;gap:4px;margin-top:5px;padding-left:24px}
+.assist-row{display:flex;align-items:center;gap:6px;margin-top:5px;padding-left:24px}
+.progress-bar{background:#0f0f1380;border-radius:99px;height:6px;margin-top:10px}
+.progress-fill{background:linear-gradient(90deg,#38bdf8,#c084fc);border-radius:99px;height:6px;transition:width .5s}
+.tue-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:6px 4px;border-bottom:1px solid #2a2a38}
+.empty{text-align:center;color:#6b7280;padding:48px}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.log-card{background:#18181f;border:1px solid #2a2a38;border-radius:12px;padding:12px;margin-bottom:10px}
+.set-tag{background:#23232e;border-radius:5px;padding:2px 8px;font-size:11px;color:#d1d5db;display:inline-block;margin:2px}
+.drop-tag{background:#1e1230;border-radius:5px;padding:2px 8px;font-size:10px;color:#c084fc;display:inline-block;margin:2px;margin-left:8px}
+.stat-card{background:#18181f;border:1px solid #2a2a38;border-radius:12px;padding:12px 6px;text-align:center}
+select option{background:#18181f;color:#e8e6f0}
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
-<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+<div id="app"></div>
 <script>
-const h = React.createElement;
-const {useState,useMemo,useEffect} = React;
-const {LineChart,Line,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,ReferenceLine} = Recharts;
-
+// ── データ ──
 const EXERCISES = ["ベンチプレス","スクワット","デッドリフト","ショルダープレス","懸垂","ダンベルカール","レッグプレス"];
 const CONDITIONS = ["最高","良い","普通","やや疲れ","疲れ"];
 const CCOLORS = {"最高":"#22c55e","良い":"#86efac","普通":"#facc15","やや疲れ":"#fb923c","疲れ":"#f87171"};
-const GOAL_START = 78.2, GOAL_END_W = 70.0, GOAL_DATE = "2027-12-31";
-const today = () => new Date().toISOString().slice(0,10);
-const newSets = () => [{weight:"",reps:"",assist:null,drops:[]}];
+const GOAL_START=78.2, GOAL_TARGET=70.0, GOAL_DATE="2027-12-31";
 
-function getTuesdays(start, end) {
-  const r=[], d=new Date(start+"T00:00:00"), e=new Date(end+"T00:00:00");
-  while(d.getDay()!==2) d.setDate(d.getDate()+1);
+function ls(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch{return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function today(){return new Date().toISOString().slice(0,10);}
+function fmtDur(m){return m?`${Math.floor(m/60)>0?Math.floor(m/60)+"時間":""}${m%60}分`:"—";}
+function newSet(){return{weight:"",reps:"",assist:null,drops:[]};}
+
+function getTuesdays(start,end){
+  const r=[],d=new Date(start+"T00:00:00"),e=new Date(end+"T00:00:00");
+  while(d.getDay()!==2)d.setDate(d.getDate()+1);
   while(d<=e){r.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+7);}
   return r;
 }
-function buildSchedule(sw,tw,sd,ed){
-  const t=getTuesdays(sd,ed); if(!t.length) return {};
+function buildSched(sw,tw,sd,ed){
+  const t=getTuesdays(sd,ed);if(!t.length)return{};
   const drop=sw-tw,steps=t.length-1,s={};
   t.forEach((d,i)=>{s[d]=Math.round((sw-drop/steps*i)*10)/10;});
   return s;
 }
-function fmtDur(m){return m?`${Math.floor(m/60)>0?Math.floor(m/60)+"時間":""}${m%60}分`:"—";}
-function ls(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch{return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 
-const S = {
-  card:{background:"#18181f",border:"1px solid #2a2a38",borderRadius:12,padding:14,marginBottom:13},
-  label:{fontSize:11,fontWeight:700,letterSpacing:"0.08em",color:"#9ca3af",textTransform:"uppercase",marginBottom:5,display:"block"},
-  inp:{width:"100%",background:"#0f0f13",border:"1px solid #2a2a38",borderRadius:8,color:"#e8e6f0",padding:"8px 10px",fontSize:14,outline:"none"},
-  sel:{width:"100%",background:"#0f0f13",border:"1px solid #2a2a38",borderRadius:8,color:"#e8e6f0",padding:"8px 10px",fontSize:14,outline:"none"},
-  btn:(v)=>({padding:v==="sm"?"5px 10px":"9px 14px",borderRadius:8,border:"none",cursor:"pointer",fontWeight:600,fontSize:v==="sm"?12:13,
-    background:v==="primary"?"#c084fc":v==="danger"?"#2a1a1a":"#23232e",
-    color:v==="primary"?"#0f0f13":v==="danger"?"#f87171":"#9ca3af"}),
-  pill:(c)=>({display:"inline-block",padding:"2px 8px",borderRadius:99,fontSize:11,fontWeight:600,background:c+"22",color:c}),
-  badge:{background:"#22c55e22",color:"#22c55e",borderRadius:8,padding:"8px 14px",textAlign:"center",fontWeight:600,fontSize:13,marginBottom:12},
+// ── 状態 ──
+let state = {
+  tab:"record",
+  logs: ls("wt_logs")||[],
+  wLogs: ls("wt_weightLogs")||[],
+  exOpts: ls("wt_exOptions")||[...EXERCISES],
+  maxRec: ls("wt_maxRecords")||{},
+  // 記録フォーム
+  date:today(), dur:"", cond:"良い", memo:"", bw:"",
+  exs:[{name:EXERCISES[0],sets:[newSet()]}],
+  custEx:"", exMode:{}, saved:false,
+  // 体重タブ
+  wDate:today(), wVal:"", wSaved:false,
+  // MAXタブ
+  maxEx:EXERCISES[0], maxVal:"", maxSaved:false,
 };
 
-function App() {
-  const [tab,setTab] = useState("record");
-  const [logs,setLogs] = useState(()=>ls("wt_logs")||[]);
-  const [wLogs,setWLogs] = useState(()=>ls("wt_weightLogs")||[]);
-  const [exOpts,setExOpts] = useState(()=>ls("wt_exOptions")||EXERCISES);
-  const [maxRec,setMaxRec] = useState(()=>ls("wt_maxRecords")||{});
-  // record form
-  const [date,setDate] = useState(today());
-  const [dur,setDur] = useState("");
-  const [cond,setCond] = useState("良い");
-  const [memo,setMemo] = useState("");
-  const [exs,setExs] = useState([{name:EXERCISES[0],sets:newSets()}]);
-  const [bw,setBw] = useState("");
-  const [saved,setSaved] = useState(false);
-  const [custEx,setCustEx] = useState("");
-  const [exMode,setExMode] = useState({});
-  // weight tab
-  const [wDate,setWDate] = useState(today());
-  const [wVal,setWVal] = useState("");
-  const [wSaved,setWSaved] = useState(false);
-  // max tab
-  const [maxEx,setMaxEx] = useState(EXERCISES[0]);
-  const [maxVal,setMaxVal] = useState("");
-  const [maxSaved,setMaxSaved] = useState(false);
-  // graph
-  const [graphEx,setGraphEx] = useState(EXERCISES[0]);
+function setState(patch){
+  Object.assign(state,patch);
+  render();
+}
 
-  function saveLog(){
-    const log={id:Date.now(),date,duration:Number(dur)||0,condition:cond,memo,exercises:exs,bodyWeight:Number(bw)||null};
-    const next=[log,...logs]; setLogs(next); lsSet("wt_logs",next);
-    setSaved(true); setTimeout(()=>setSaved(false),2000);
-    setExs([{name:exOpts[0],sets:newSets()}]); setDur(""); setMemo(""); setCond("良い"); setBw("");
-  }
-  function delLog(id){const n=logs.filter(l=>l.id!==id);setLogs(n);lsSet("wt_logs",n);}
-  function addEx(){setExs(p=>[...p,{name:exOpts[0],sets:newSets()}]);}
-  function remEx(i){setExs(p=>p.filter((_,x)=>x!==i));}
-  function updEx(i,f,v){setExs(p=>p.map((e,x)=>x===i?{...e,[f]:v}:e));}
-  function addSet(i){setExs(p=>p.map((e,x)=>x===i?{...e,sets:[...e.sets,{weight:"",reps:"",assist:null,drops:[]}]}:e));}
-  function remSet(i,j){setExs(p=>p.map((e,x)=>x===i?{...e,sets:e.sets.filter((_,y)=>y!==j)}:e));}
-  function updSet(i,j,f,v){setExs(p=>p.map((e,x)=>x===i?{...e,sets:e.sets.map((s,y)=>y===j?{...s,[f]:v}:s)}:e));}
-  function addDrop(i,j){setExs(p=>p.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:[...(s.drops||[]),{weight:"",reps:""}]})}));}
-  function remDrop(i,j,di){setExs(p=>p.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:s.drops.filter((_,z)=>z!==di)})}));}
-  function updDrop(i,j,di,f,v){setExs(p=>p.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:s.drops.map((d,z)=>z!==di?d:{...d,[f]:v})})}));}
-  function saveExOpts(n){setExOpts(n);lsSet("wt_exOptions",n);}
-  function addCustEx(){const n=custEx.trim();if(n&&!exOpts.includes(n))saveExOpts([...exOpts,n]);setCustEx("");}
-  function confirmEx(i,name){const t=name.trim();if(!t)return;updEx(i,"name",t);if(!exOpts.includes(t))saveExOpts([...exOpts,t]);setExMode(p=>({...p,[i]:"sel"}));}
-  function saveWLog(){const v=Number(wVal);if(!v)return;const e={id:Date.now(),date:wDate,bw:v};const n=[e,...wLogs].sort((a,b)=>b.date.localeCompare(a.date));setWLogs(n);lsSet("wt_weightLogs",n);setWVal("");setWSaved(true);setTimeout(()=>setWSaved(false),2000);}
-  function delWLog(id){const n=wLogs.filter(l=>l.id!==id);setWLogs(n);lsSet("wt_weightLogs",n);}
-  function saveMax(){const v=Number(maxVal);if(!v)return;const n={...maxRec,[maxEx]:v};setMaxRec(n);lsSet("wt_maxRecords",n);setMaxVal("");setMaxSaved(true);setTimeout(()=>setMaxSaved(false),2000);}
-  function delMax(name){const n={...maxRec};delete n[name];setMaxRec(n);lsSet("wt_maxRecords",n);}
+function el(tag,attrs,...children){
+  const e=document.createElement(tag);
+  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
+    if(k==="style"&&typeof v==="object"){Object.assign(e.style,v);}
+    else if(k.startsWith("on")&&typeof v==="function"){e.addEventListener(k.slice(2).toLowerCase(),v);}
+    else if(k==="className"){e.className=v;}
+    else if(k==="htmlFor"){e.htmlFor=v;}
+    else if(k in e){e[k]=v;}
+    else{e.setAttribute(k,v);}
+  });
+  children.flat(Infinity).forEach(c=>{
+    if(c==null||c===false)return;
+    e.appendChild(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c);
+  });
+  return e;
+}
 
-  const allExNames = useMemo(()=>{const s=new Set(exOpts);logs.forEach(l=>l.exercises.forEach(e=>s.add(e.name)));return[...s];},[logs,exOpts]);
-  const graphData = useMemo(()=>{const m={};logs.forEach(log=>{log.exercises.forEach(ex=>{if(ex.name===graphEx){const mw=Math.max(...ex.sets.map(s=>Number(s.weight)||0));if(!m[log.date]||m[log.date]<mw)m[log.date]=mw;}});});return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,w])=>({date:d,weight:w}));},[logs,graphEx]);
+// ── アクション ──
+function saveLog(){
+  const log={id:Date.now(),date:state.date,duration:Number(state.dur)||0,condition:state.cond,memo:state.memo,exercises:state.exs,bodyWeight:Number(state.bw)||null};
+  const next=[log,...state.logs];
+  lsSet("wt_logs",next);
+  setState({logs:next,exs:[{name:state.exOpts[0],sets:[newSet()]}],dur:"",memo:"",cond:"良い",bw:"",saved:true});
+  setTimeout(()=>setState({saved:false}),2000);
+}
+function delLog(id){const n=state.logs.filter(l=>l.id!==id);lsSet("wt_logs",n);setState({logs:n});}
 
-  const body = {padding:"14px 13px",maxWidth:520,margin:"0 auto"};
-  const row = {display:"flex",gap:8};
+function saveWLog(){
+  const v=Number(state.wVal);if(!v)return;
+  const e={id:Date.now(),date:state.wDate,bw:v};
+  const n=[e,...state.wLogs].sort((a,b)=>b.date.localeCompare(a.date));
+  lsSet("wt_weightLogs",n);
+  setState({wLogs:n,wVal:"",wSaved:true});
+  setTimeout(()=>setState({wSaved:false}),2000);
+}
+function delWLog(id){const n=state.wLogs.filter(l=>l.id!==id);lsSet("wt_weightLogs",n);setState({wLogs:n});}
 
-  // tabs
-  const tabs = h("div",{style:{display:"flex",background:"#18181f",borderBottom:"1px solid #2a2a38"}},
-    [["record","📝 記録"],["history","📋 履歴"],["weight","⚖️ 体重"],["max","💪 MAX"],["graph","📈 グラフ"]].map(([k,l])=>
-      h("button",{key:k,onClick:()=>setTab(k),style:{flex:1,padding:"11px 2px",fontSize:11,fontWeight:600,border:"none",cursor:"pointer",background:"none",color:tab===k?"#c084fc":"#6b7280",borderBottom:tab===k?"2px solid #c084fc":"2px solid transparent",whiteSpace:"nowrap"}},l)
-    )
-  );
+function saveMax(){
+  const v=Number(state.maxVal);if(!v)return;
+  const n={...state.maxRec,[state.maxEx]:v};
+  lsSet("wt_maxRecords",n);
+  setState({maxRec:n,maxVal:"",maxSaved:true});
+  setTimeout(()=>setState({maxSaved:false}),2000);
+}
+function delMax(name){const n={...state.maxRec};delete n[name];lsSet("wt_maxRecords",n);setState({maxRec:n});}
 
-  let content = null;
+function updExs(fn){setState({exs:fn(state.exs)});}
+function updSet(i,j,f,v){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,[f]:v})}));}
+function addDrop(i,j){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:[...(s.drops||[]),{weight:"",reps:""}]})}));}
+function remDrop(i,j,di){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:s.drops.filter((_,z)=>z!==di)})}));}
+function updDrop(i,j,di,f,v){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:s.drops.map((d,z)=>z!==di?d:{...d,[f]:v})})}));}
+function confirmEx(i,name){
+  const t=name.trim();if(!t)return;
+  updExs(exs=>exs.map((e,x)=>x===i?{...e,name:t}:e));
+  if(!state.exOpts.includes(t)){const n=[...state.exOpts,t];lsSet("wt_exOptions",n);setState({exOpts:n});}
+  setState({exMode:{...state.exMode,[i]:"sel"}});
+}
+function addCustEx(){
+  const n=state.custEx.trim();
+  if(n&&!state.exOpts.includes(n)){const o=[...state.exOpts,n];lsSet("wt_exOptions",o);setState({exOpts:o});}
+  setState({custEx:""});
+}
 
-  if(tab==="record"){
-    content = h("div",{style:body},
-      saved&&h("div",{style:S.badge},"✅ 保存しました！"),
-      h("div",{style:S.card},
-        h("div",{style:row},
-          h("div",{style:{flex:1}},h("label",{style:S.label},"日付"),h("input",{type:"date",style:S.inp,value:date,onChange:e=>setDate(e.target.value)})),
-          h("div",{style:{flex:1}},h("label",{style:S.label},"時間（分）"),h("input",{type:"number",style:S.inp,placeholder:"60",value:dur,onChange:e=>setDur(e.target.value),min:"0"}))
-        ),
-        h("div",{style:{marginTop:9}},h("label",{style:S.label},"体重 (kg)"),h("input",{type:"number",style:S.inp,placeholder:"72.5",value:bw,onChange:e=>setBw(e.target.value),min:"0",step:"0.1"}))
+// ── 描画 ──
+function renderRecord(){
+  const {date,dur,cond,bw,exs,memo,saved,custEx,exOpts,exMode}=state;
+  const allExNames=[...new Set([...exOpts,...state.logs.flatMap(l=>l.exercises.map(e=>e.name))])];
+
+  return el("div",{className:"body"},
+    saved&&el("div",{className:"badge"},"✅ 保存しました！"),
+    el("div",{className:"card"},
+      el("div",{className:"row"},
+        el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:date,onInput:e=>setState({date:e.target.value})})),
+        el("div",{style:{flex:1}},el("label",{className:"label"},"時間（分）"),el("input",{type:"number",className:"inp",placeholder:"60",value:dur,onInput:e=>setState({dur:e.target.value}),min:"0"}))
       ),
-      h("div",{style:S.card},
-        h("label",{style:S.label},"体調"),
-        h("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
-          CONDITIONS.map(c=>h("button",{key:c,onClick:()=>setCond(c),style:{...S.btn(),background:cond===c?CCOLORS[c]:"#23232e",color:cond===c?"#0f0f13":"#9ca3af",padding:"5px 11px",fontSize:12}},c))
-        )
-      ),
-      ...exs.map((ex,i)=>
-        h("div",{key:i,style:S.card},
-          h("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:10}},
-            exMode[i]==="text"
-              ? h("input",{autoFocus:true,style:{...S.inp,flex:1},defaultValue:ex.name,placeholder:"種目名を入力...",onBlur:e=>confirmEx(i,e.target.value),onKeyDown:e=>{if(e.key==="Enter")confirmEx(i,e.target.value);}})
-              : h("select",{style:{...S.sel,flex:1},value:ex.name,onChange:e=>updEx(i,"name",e.target.value)},exOpts.map(o=>h("option",{key:o},o))),
-            h("button",{onClick:()=>setExMode(p=>({...p,[i]:p[i]==="text"?"sel":"text"})),style:{...S.btn("ghost"),padding:"7px 8px",fontSize:13,flexShrink:0,color:exMode[i]==="text"?"#c084fc":"#6b7280"}},"✏️"),
-            exs.length>1&&h("button",{style:S.btn("danger"),onClick:()=>remEx(i)},"✕")
-          ),
-          h("div",{style:{display:"grid",gridTemplateColumns:"18px 1fr 1fr auto",gap:5,marginBottom:6}},
-            h("span"),h("span",{style:{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}},"重量kg"),h("span",{style:{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}},"回数"),h("span")
-          ),
-          ...ex.sets.map((s,j)=>
-            h("div",{key:j,style:{marginBottom:10}},
-              h("div",{style:{display:"flex",alignItems:"center",gap:4}},
-                h("span",{style:{width:18,fontSize:11,color:"#6b7280",fontWeight:700,textAlign:"center",flexShrink:0}},j+1),
-                h("input",{type:"number",style:{...S.inp,flex:1},placeholder:"kg",value:s.weight,onChange:e=>updSet(i,j,"weight",e.target.value),min:"0",step:"0.5"}),
-                h("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
-                h("input",{type:"number",style:{...S.inp,flex:1},placeholder:"rep",value:s.reps,onChange:e=>updSet(i,j,"reps",e.target.value),min:"0"}),
-                h("button",{onClick:()=>updSet(i,j,"assist",s.assist!=null?null:""),style:{background:s.assist!=null?"#38bdf822":"#23232e",border:"none",borderRadius:6,color:s.assist!=null?"#38bdf8":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0}},"補"),
-                h("button",{onClick:()=>addDrop(i,j),style:{background:s.drops&&s.drops.length?"#c084fc22":"#23232e",border:"none",borderRadius:6,color:s.drops&&s.drops.length?"#c084fc":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0}},"Drop"),
-                ex.sets.length>1&&h("button",{onClick:()=>remSet(i,j),style:{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:15,padding:"0 2px",flexShrink:0}},"−")
-              ),
-              s.assist!=null&&h("div",{style:{display:"flex",alignItems:"center",gap:6,marginTop:5,paddingLeft:24}},
-                h("span",{style:{fontSize:11,color:"#38bdf8",fontWeight:700,flexShrink:0}},"＋補助"),
-                h("input",{type:"number",min:"0",style:{...S.inp,flex:1,borderColor:"#38bdf844",color:"#38bdf8"},placeholder:"補助rep数",value:s.assist??"",onChange:e=>updSet(i,j,"assist",e.target.value)}),
-                h("span",{style:{fontSize:11,color:"#38bdf8"}},"rep")
-              ),
-              ...(s.drops||[]).map((d,di)=>
-                h("div",{key:di,style:{display:"flex",alignItems:"center",gap:4,marginTop:5,paddingLeft:24}},
-                  h("span",{style:{fontSize:10,color:"#c084fc",fontWeight:700,flexShrink:0}},`↓Drop${di+1}`),
-                  h("input",{type:"number",style:{...S.inp,flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"kg",value:d.weight??"",onChange:e=>updDrop(i,j,di,"weight",e.target.value),min:"0",step:"0.5"}),
-                  h("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
-                  h("input",{type:"number",style:{...S.inp,flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"rep",value:d.reps??"",onChange:e=>updDrop(i,j,di,"reps",e.target.value),min:"0"}),
-                  h("button",{onClick:()=>remDrop(i,j,di),style:{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:15,padding:"0 2px",flexShrink:0}},"−")
-                )
-              )
-            )
-          ),
-          h("button",{style:S.btn("sm"),onClick:()=>addSet(i)},"＋ セット追加")
-        )
-      ),
-      h("div",{style:{...S.card,padding:10}},
-        h("div",{style:row},
-          h("input",{style:{...S.inp,flex:1},placeholder:"カスタム種目名を追加",value:custEx,onChange:e=>setCustEx(e.target.value),onKeyDown:e=>e.key==="Enter"&&addCustEx()}),
-          h("button",{style:S.btn("ghost"),onClick:addCustEx},"追加")
-        )
-      ),
-      h("button",{style:{...S.btn(),width:"100%",marginBottom:12},onClick:addEx},"＋ 種目を追加"),
-      h("div",{style:S.card},h("label",{style:S.label},"メモ"),h("textarea",{style:{...S.inp,minHeight:64,resize:"vertical"},placeholder:"今日のトレーニングについて...",value:memo,onChange:e=>setMemo(e.target.value)})),
-      h("button",{style:{...S.btn("primary"),width:"100%",fontSize:15,padding:"13px 0"},onClick:saveLog},"💾 記録を保存")
-    );
-  }
-
-  if(tab==="history"){
-    content = h("div",{style:body},
-      logs.length===0
-        ? h("div",{style:{textAlign:"center",color:"#6b7280",padding:48}},h("div",{style:{fontSize:40,marginBottom:12}},"🏋️"),h("div",{style:{fontWeight:600}},"まだ記録がありません"))
-        : logs.map(log=>
-          h("div",{key:log.id,style:{background:"#18181f",border:"1px solid #2a2a38",borderRadius:12,padding:12,marginBottom:10}},
-            h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
-              h("div",null,
-                h("div",{style:{fontSize:14,fontWeight:700,color:"#e8e6f0",marginBottom:3}},log.date),
-                h("div",{style:{fontSize:12,color:"#6b7280",marginBottom:6}},
-                  log.duration?`⏱ ${fmtDur(log.duration)}`:"",
-                  log.condition&&h("span",{style:S.pill(CCOLORS[log.condition]||"#6b7280")},log.condition),
-                  log.bodyWeight&&h("span",{style:{marginLeft:6,color:"#9ca3af"}},`⚖️ ${log.bodyWeight}kg`)
-                )
-              ),
-              h("button",{onClick:()=>delLog(log.id),style:{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:17}},"🗑")
-            ),
-            ...log.exercises.map((ex,i)=>
-              h("div",{key:i,style:{marginBottom:7}},
-                h("div",{style:{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:4}},ex.name),
-                h("div",{style:{display:"flex",flexWrap:"wrap",gap:5}},
-                  ex.sets.map((s,j)=>
-                    h("div",{key:j,style:{display:"flex",flexDirection:"column",gap:2}},
-                      h("span",{style:{background:"#23232e",borderRadius:5,padding:"2px 8px",fontSize:11,color:"#d1d5db"}},
-                        `${j+1}: ${s.weight||"—"}kg×${s.reps||"—"}rep`,
-                        s.assist!=null&&s.assist!==""&&h("span",{style:{color:"#38bdf8"}},` +(${s.assist}補助)`)
-                      ),
-                      ...(s.drops||[]).map((d,di)=>h("span",{key:di,style:{background:"#1e1230",borderRadius:5,padding:"2px 8px",fontSize:10,color:"#c084fc",marginLeft:8}},`↓ ${d.weight||"—"}kg×${d.reps||"—"}rep`))
-                    )
-                  )
-                )
-              )
-            ),
-            log.memo&&h("div",{style:{marginTop:6,fontSize:11,color:"#9ca3af",borderTop:"1px solid #2a2a38",paddingTop:6}},`💬 ${log.memo}`)
-          )
-        )
-    );
-  }
-
-  if(tab==="weight"){
-    const allBw=[...wLogs,...logs.filter(l=>l.bodyWeight).map(l=>({date:l.date,bw:l.bodyWeight}))].sort((a,b)=>a.date.localeCompare(b.date));
-    const schedStart=allBw.length>0?allBw[0].date:"2025-06-22";
-    const sched=buildSchedule(GOAL_START,GOAL_END_W,schedStart,GOAL_DATE);
-    const tuesdays=Object.keys(sched).sort();
-    const actMap={}; allBw.forEach(l=>{actMap[l.date]=l.bw;});
-    const latestBw=allBw.length>0?allBw[allBw.length-1].bw:GOAL_START;
-    const remaining=(latestBw-GOAL_END_W).toFixed(1);
-    const daysLeft=Math.ceil((new Date(GOAL_DATE)-new Date())/86400000);
-    const bwMap={}; wLogs.forEach(l=>{bwMap[l.date]=l.bw;}); logs.filter(l=>l.bodyWeight).forEach(l=>{if(!bwMap[l.date])bwMap[l.date]=l.bodyWeight;});
-    const bwData=Object.entries(bwMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,bw])=>({date:d,bw}));
-    const pct=Math.max(0,Math.min(100,((GOAL_START-latestBw)/(GOAL_START-GOAL_END_W))*100));
-
-    content = h("div",{style:body},
-      wSaved&&h("div",{style:S.badge},"✅ 体重を保存しました！"),
-      h("div",{style:{...S.card,background:"linear-gradient(135deg,#0f172a,#1e1b4b)",border:"1px solid #38bdf844"}},
-        h("div",{style:{fontSize:11,fontWeight:700,color:"#38bdf8",marginBottom:8}},"🎯 目標"),
-        h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}},
-          h("div",null,h("div",{style:{fontSize:26,fontWeight:900,color:"#e8e6f0"}},`${GOAL_END_W}`,h("span",{style:{fontSize:13,color:"#6b7280"}},"kg")),h("div",{style:{fontSize:12,color:"#6b7280",marginTop:2}},"残り ",h("span",{style:{color:"#f87171",fontWeight:700}},`-${remaining}kg`)," ／ ",daysLeft,"日")),
-          h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:11,color:"#6b7280"}},"現在"),h("div",{style:{fontSize:20,fontWeight:800,color:"#38bdf8"}},`${latestBw}kg`))
-        ),
-        h("div",{style:{marginTop:10,background:"#0f0f1380",borderRadius:99,height:6}},h("div",{style:{width:pct+"%",background:"linear-gradient(90deg,#38bdf8,#c084fc)",borderRadius:99,height:6}})),
-        h("div",{style:{display:"flex",justifyContent:"space-between",marginTop:3}},h("span",{style:{fontSize:10,color:"#4b5563"}},`${GOAL_START}kg`),h("span",{style:{fontSize:10,color:"#4b5563"}},`${GOAL_END_W}kg（${GOAL_DATE}）`))
-      ),
-      h("div",{style:S.card},
-        h("div",{style:row},
-          h("div",{style:{flex:1}},h("label",{style:S.label},"日付"),h("input",{type:"date",style:S.inp,value:wDate,onChange:e=>setWDate(e.target.value)})),
-          h("div",{style:{flex:1}},h("label",{style:S.label},"体重 (kg)"),h("input",{type:"number",style:S.inp,placeholder:"72.5",value:wVal,onChange:e=>setWVal(e.target.value),min:"0",step:"0.1"}))
-        ),
-        h("button",{style:{...S.btn("primary"),width:"100%",marginTop:10},onClick:saveWLog},"⚖️ 体重を記録")
-      ),
-      bwData.length>=2&&h("div",{style:S.card},
-        h("div",{style:{fontSize:12,fontWeight:700,color:"#38bdf8",marginBottom:12}},"📈 体重グラフ"),
-        h(ResponsiveContainer,{width:"100%",height:200},
-          h(LineChart,{data:bwData},
-            h(CartesianGrid,{strokeDasharray:"3 3",stroke:"#2a2a38"}),
-            h(XAxis,{dataKey:"date",tick:{fontSize:9,fill:"#6b7280"},tickLine:false}),
-            h(YAxis,{tick:{fontSize:9,fill:"#6b7280"},tickLine:false,unit:"kg",domain:[Math.floor(Math.min(...bwData.map(d=>d.bw),GOAL_END_W))-1,Math.ceil(Math.max(...bwData.map(d=>d.bw)))+1]}),
-            h(Tooltip,{contentStyle:{background:"#18181f",border:"1px solid #2a2a38",borderRadius:8,fontSize:12},formatter:v=>[`${v}kg`,"体重"]}),
-            h(ReferenceLine,{y:GOAL_END_W,stroke:"#f87171",strokeDasharray:"4 3",label:{value:`目標${GOAL_END_W}kg`,position:"insideTopRight",fill:"#f87171",fontSize:9}}),
-            h(Line,{type:"monotone",dataKey:"bw",stroke:"#38bdf8",strokeWidth:2.5,dot:{fill:"#38bdf8",r:4},activeDot:{r:6}})
-          )
-        )
-      ),
-      h("div",{style:S.card},
-        h("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}},"📅 火曜日ペース目標"),
-        h("div",{style:{maxHeight:280,overflowY:"auto"}},
-          tuesdays.map(d=>{
-            const target=sched[d],actual=actMap[d],isToday=d===today(),isPast=d<today(),diff=actual!=null?(actual-target).toFixed(1):null;
-            return h("div",{key:d,style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4,padding:"6px 4px",borderBottom:"1px solid #2a2a38",background:isToday?"#38bdf811":"none"}},
-              h("span",{style:{fontSize:11,color:isToday?"#38bdf8":isPast?"#4b5563":"#9ca3af",fontWeight:isToday?700:400}},d,isToday?" 🔵":""),
-              h("span",{style:{fontSize:11,color:"#9ca3af",textAlign:"center"}},`${target}kg`),
-              actual!=null
-                ? h("span",{style:{fontSize:11,fontWeight:700,color:Number(diff)<=0?"#22c55e":"#f87171",textAlign:"right"}},`${actual}kg (${Number(diff)>0?"+":""}${diff})`)
-                : h("span",{style:{fontSize:11,color:"#374151",textAlign:"right"}},isPast?"未記録":"—")
-            );
-          })
-        )
-      ),
-      wLogs.length>0&&h("div",{style:S.card},
-        h("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:8}},"記録一覧"),
-        wLogs.map(l=>{
-          const isTue=new Date(l.date+"T00:00:00").getDay()===2;
-          return h("div",{key:l.id,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #2a2a38"}},
-            h("span",{style:{fontSize:12,color:isTue?"#38bdf8":"#9ca3af"}},l.date,isTue?" 🔵":""),
-            h("span",{style:{fontSize:15,fontWeight:700,color:"#38bdf8"}},`${l.bw}kg`),
-            h("button",{onClick:()=>delWLog(l.id),style:{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16}},"🗑")
-          );
-        })
-      )
-    );
-  }
-
-  if(tab==="max"){
-    content = h("div",{style:body},
-      maxSaved&&h("div",{style:S.badge},"✅ マックスを保存しました！"),
-      h("div",{style:S.card},
-        h("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:10}},"種目別マックス重量"),
-        h("div",{style:row},
-          h("select",{style:{...S.sel,flex:1},value:maxEx,onChange:e=>setMaxEx(e.target.value)},allExNames.map(n=>h("option",{key:n},n))),
-          h("input",{type:"number",style:{...S.inp,flex:1},placeholder:"100",value:maxVal,onChange:e=>setMaxVal(e.target.value),min:"0",step:"0.5"})
-        ),
-        h("button",{style:{...S.btn("primary"),width:"100%",marginTop:10},onClick:saveMax},"💪 マックスを保存")
-      ),
-      Object.keys(maxRec).length===0
-        ? h("div",{style:{textAlign:"center",color:"#6b7280",padding:40}},h("div",{style:{fontSize:40,marginBottom:12}},"💪"),h("div",{style:{fontWeight:600}},"まだ記録がありません"))
-        : h("div",{style:S.card},
-          Object.entries(maxRec).sort((a,b)=>b[1]-a[1]).map(([name,kg])=>
-            h("div",{key:name,style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #2a2a38"}},
-              h("div",{style:{fontSize:13,fontWeight:700,color:"#e8e6f0"}},name),
-              h("div",{style:{display:"flex",alignItems:"center",gap:8}},
-                h("span",{style:{fontSize:18,fontWeight:900,color:"#c084fc"}},kg,h("span",{style:{fontSize:11,color:"#6b7280"}},"kg")),
-                h("button",{onClick:()=>delMax(name),style:{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16}},"🗑")
-              )
-            )
-          )
-        )
-    );
-  }
-
-  if(tab==="graph"){
-    content = h("div",{style:body},
-      h("div",{style:S.card},h("label",{style:S.label},"種目"),h("select",{style:S.sel,value:graphEx,onChange:e=>setGraphEx(e.target.value)},allExNames.map(n=>h("option",{key:n},n)))),
-      graphData.length<2
-        ? h("div",{style:{textAlign:"center",color:"#6b7280",padding:48}},h("div",{style:{fontSize:40,marginBottom:12}},"📈"),h("div",{style:{fontWeight:600}},"データが足りません"),h("div",{style:{fontSize:12,marginTop:6}},"この種目を2回以上記録すると表示されます"))
-        : h("div",{style:S.card},
-          h("div",{style:{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:12}},`${graphEx} — 最大重量の推移`),
-          h(ResponsiveContainer,{width:"100%",height:200},
-            h(LineChart,{data:graphData},
-              h(CartesianGrid,{strokeDasharray:"3 3",stroke:"#2a2a38"}),
-              h(XAxis,{dataKey:"date",tick:{fontSize:9,fill:"#6b7280"},tickLine:false}),
-              h(YAxis,{tick:{fontSize:9,fill:"#6b7280"},tickLine:false,unit:"kg"}),
-              h(Tooltip,{contentStyle:{background:"#18181f",border:"1px solid #2a2a38",borderRadius:8,fontSize:12},formatter:v=>[`${v}kg`,"最大重量"]}),
-              h(Line,{type:"monotone",dataKey:"weight",stroke:"#c084fc",strokeWidth:2.5,dot:{fill:"#c084fc",r:4},activeDot:{r:6}})
-            )
-          )
-        ),
-      graphData.length>0&&h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:8}},
-        [["最大重量",Math.max(...graphData.map(d=>d.weight))+"kg"],["記録回数",graphData.length+"回"],["伸び",graphData.length>1?(graphData[graphData.length-1].weight-graphData[0].weight>0?"+":"")+(graphData[graphData.length-1].weight-graphData[0].weight)+"kg":"—"]].map(([l,v])=>
-          h("div",{key:l,style:{...S.card,textAlign:"center",padding:"12px 6px",marginBottom:0}},h("div",{style:{fontSize:17,fontWeight:800,color:"#c084fc"}},v),h("div",{style:{fontSize:10,color:"#6b7280",marginTop:3}},l))
-        )
-      )
-    );
-  }
-
-  return h("div",{style:{minHeight:"100vh",background:"#0f0f13",color:"#e8e6f0"}},
-    h("div",{style:{background:"#18181f",borderBottom:"1px solid #2a2a38",padding:"13px 16px",display:"flex",alignItems:"center",gap:10}},
-      h("span",{style:{fontSize:20,fontWeight:800,letterSpacing:"-0.5px",color:"#c084fc"}},"LIFT",h("span",{style:{color:"#e8e6f0"}},"LOG")),
-      h("span",{style:{fontSize:11,color:"#6b7280",marginLeft:4}},"筋トレ記録")
+      el("div",{style:{marginTop:9}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"number",className:"inp",placeholder:"72.5",value:bw,onInput:e=>setState({bw:e.target.value}),min:"0",step:"0.1"}))
     ),
-    tabs,
-    content
+    el("div",{className:"card"},
+      el("label",{className:"label"},"体調"),
+      el("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
+        ...CONDITIONS.map(c=>el("button",{style:{background:cond===c?CCOLORS[c]:"#23232e",color:cond===c?"#0f0f13":"#9ca3af",border:"none",borderRadius:8,padding:"5px 11px",fontSize:12,fontWeight:600,cursor:"pointer"},onClick:()=>setState({cond:c})},c))
+      )
+    ),
+    ...exs.map((ex,i)=>el("div",{className:"card"},
+      el("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:10}},
+        exMode[i]==="text"
+          ? el("input",{className:"inp",style:{flex:1},value:ex.name,onInput:e=>updExs(exs=>exs.map((x,xi)=>xi===i?{...x,name:e.target.value}:x)),onBlur:e=>confirmEx(i,e.target.value),onKeyDown:e=>{if(e.key==="Enter")confirmEx(i,e.target.value);}})
+          : el("select",{className:"inp",style:{flex:1},value:ex.name,onChange:e=>updExs(exs=>exs.map((x,xi)=>xi===i?{...x,name:e.target.value}:x))},
+              ...allExNames.map(o=>el("option",{value:o},o))
+            ),
+        el("button",{style:{background:"#23232e",border:"none",borderRadius:6,color:exMode[i]==="text"?"#c084fc":"#6b7280",fontSize:13,padding:"7px 8px",cursor:"pointer",flexShrink:0},onClick:()=>setState({exMode:{...exMode,[i]:exMode[i]==="text"?"sel":"text"}})},"✏️"),
+        exs.length>1&&el("button",{className:"btn-danger",style:{padding:"7px 10px"},onClick:()=>updExs(exs=>exs.filter((_,x)=>x!==i))},"✕")
+      ),
+      el("div",{style:{display:"grid",gridTemplateColumns:"18px 1fr 1fr auto",gap:5,marginBottom:6}},
+        el("span"),el("span",{style:{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}},"重量kg"),el("span",{style:{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}},"回数"),el("span")
+      ),
+      ...ex.sets.map((s,j)=>el("div",{style:{marginBottom:10}},
+        el("div",{style:{display:"flex",alignItems:"center",gap:4}},
+          el("span",{style:{width:18,fontSize:11,color:"#6b7280",fontWeight:700,textAlign:"center",flexShrink:0}},j+1),
+          el("input",{type:"number",className:"inp",style:{flex:1},placeholder:"kg",value:s.weight,onInput:e=>updSet(i,j,"weight",e.target.value),min:"0",step:"0.5"}),
+          el("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
+          el("input",{type:"number",className:"inp",style:{flex:1},placeholder:"rep",value:s.reps,onInput:e=>updSet(i,j,"reps",e.target.value),min:"0"}),
+          el("button",{style:{background:s.assist!=null?"#38bdf822":"#23232e",border:"none",borderRadius:6,color:s.assist!=null?"#38bdf8":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0},onClick:()=>updSet(i,j,"assist",s.assist!=null?null:"")},"補"),
+          el("button",{style:{background:s.drops&&s.drops.length?"#c084fc22":"#23232e",border:"none",borderRadius:6,color:s.drops&&s.drops.length?"#c084fc":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0},onClick:()=>addDrop(i,j)},"Drop"),
+          ex.sets.length>1&&el("button",{className:"icon-btn",onClick:()=>updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.filter((_,y)=>y!==j)}))},"−")
+        ),
+        s.assist!=null&&el("div",{className:"assist-row"},
+          el("span",{style:{fontSize:11,color:"#38bdf8",fontWeight:700,flexShrink:0}},"＋補助"),
+          el("input",{type:"number",min:"0",className:"inp",style:{flex:1,borderColor:"#38bdf844",color:"#38bdf8"},placeholder:"補助rep数",value:s.assist||"",onInput:e=>updSet(i,j,"assist",e.target.value)}),
+          el("span",{style:{fontSize:11,color:"#38bdf8"}},"rep")
+        ),
+        ...(s.drops||[]).map((d,di)=>el("div",{className:"drop-row"},
+          el("span",{style:{fontSize:10,color:"#c084fc",fontWeight:700,flexShrink:0}},`↓Drop${di+1}`),
+          el("input",{type:"number",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"kg",value:d.weight||"",onInput:e=>updDrop(i,j,di,"weight",e.target.value),min:"0",step:"0.5"}),
+          el("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
+          el("input",{type:"number",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"rep",value:d.reps||"",onInput:e=>updDrop(i,j,di,"reps",e.target.value),min:"0"}),
+          el("button",{className:"icon-btn",onClick:()=>remDrop(i,j,di)},"−")
+        ))
+      )),
+      el("button",{className:"btn-sm",onClick:()=>updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:[...e.sets,newSet()]}))},"＋ セット追加")
+    )),
+    el("div",{className:"card",style:{padding:10}},
+      el("div",{className:"row"},
+        el("input",{className:"inp",style:{flex:1},placeholder:"カスタム種目名を追加",value:custEx,onInput:e=>setState({custEx:e.target.value}),onKeyDown:e=>e.key==="Enter"&&addCustEx()}),
+        el("button",{className:"btn-ghost",onClick:addCustEx},"追加")
+      )
+    ),
+    el("button",{className:"btn-ghost",style:{width:"100%",marginBottom:12},onClick:()=>updExs(exs=>[...exs,{name:state.exOpts[0],sets:[newSet()]}])},"＋ 種目を追加"),
+    el("div",{className:"card"},el("label",{className:"label"},"メモ"),el("textarea",{className:"inp",style:{minHeight:64,resize:"vertical"},placeholder:"今日のトレーニングについて...",value:memo,onInput:e=>setState({memo:e.target.value})})),
+    el("button",{className:"btn-primary",onClick:saveLog},"💾 記録を保存")
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+function renderHistory(){
+  const {logs}=state;
+  if(!logs.length)return el("div",{className:"body"},el("div",{className:"empty"},el("div",{className:"empty-icon"},"🏋️"),el("div",{style:{fontWeight:600}},"まだ記録がありません")));
+  return el("div",{className:"body"},...logs.map(log=>
+    el("div",{className:"log-card"},
+      el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
+        el("div",null,
+          el("div",{style:{fontSize:14,fontWeight:700,color:"#e8e6f0",marginBottom:3}},log.date),
+          el("div",{style:{fontSize:12,color:"#6b7280",marginBottom:6}},
+            log.duration?`⏱ ${fmtDur(log.duration)} `:"",
+            log.condition?el("span",{style:{display:"inline-block",padding:"2px 8px",borderRadius:99,fontSize:11,fontWeight:600,background:(CCOLORS[log.condition]||"#6b7280")+"22",color:CCOLORS[log.condition]||"#6b7280"}},log.condition):"",
+            log.bodyWeight?` ⚖️ ${log.bodyWeight}kg`:""
+          )
+        ),
+        el("button",{className:"icon-btn",onClick:()=>delLog(log.id)},"🗑")
+      ),
+      ...log.exercises.map((ex,i)=>el("div",{style:{marginBottom:7}},
+        el("div",{style:{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:4}},ex.name),
+        el("div",{style:{display:"flex",flexWrap:"wrap",gap:4}},
+          ...ex.sets.map((s,j)=>el("div",{style:{display:"flex",flexDirection:"column",gap:2}},
+            el("span",{className:"set-tag"},`${j+1}: ${s.weight||"—"}kg×${s.reps||"—"}rep`,s.assist!=null&&s.assist!==""?el("span",{style:{color:"#38bdf8"}},` +(${s.assist}補助)`):null),
+            ...(s.drops||[]).map((d,di)=>el("span",{className:"drop-tag"},`↓ ${d.weight||"—"}kg×${d.reps||"—"}rep`))
+          ))
+        )
+      )),
+      log.memo&&el("div",{style:{marginTop:6,fontSize:11,color:"#9ca3af",borderTop:"1px solid #2a2a38",paddingTop:6}},`💬 ${log.memo}`)
+    )
+  ));
+}
+
+function renderWeight(){
+  const {wLogs,logs,wDate,wVal,wSaved}=state;
+  const allBw=[...wLogs,...logs.filter(l=>l.bodyWeight).map(l=>({date:l.date,bw:l.bodyWeight}))].sort((a,b)=>a.date.localeCompare(b.date));
+  const schedStart=allBw.length>0?allBw[0].date:"2025-06-22";
+  const sched=buildSched(GOAL_START,GOAL_TARGET,schedStart,GOAL_DATE);
+  const tuesdays=Object.keys(sched).sort();
+  const actMap={}; allBw.forEach(l=>{actMap[l.date]=l.bw;});
+  const latestBw=allBw.length>0?allBw[allBw.length-1].bw:GOAL_START;
+  const remaining=(latestBw-GOAL_TARGET).toFixed(1);
+  const daysLeft=Math.ceil((new Date(GOAL_DATE)-new Date())/86400000);
+  const pct=Math.max(0,Math.min(100,((GOAL_START-latestBw)/(GOAL_START-GOAL_TARGET))*100));
+
+  return el("div",{className:"body"},
+    wSaved&&el("div",{className:"badge"},"✅ 体重を保存しました！"),
+    el("div",{className:"card",style:{background:"linear-gradient(135deg,#0f172a,#1e1b4b)",border:"1px solid #38bdf844"}},
+      el("div",{style:{fontSize:11,fontWeight:700,color:"#38bdf8",marginBottom:8}},"🎯 目標"),
+      el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}},
+        el("div",null,el("div",{style:{fontSize:26,fontWeight:900,color:"#e8e6f0"}},`${GOAL_TARGET}`,el("span",{style:{fontSize:13,color:"#6b7280"}},"kg")),el("div",{style:{fontSize:12,color:"#6b7280",marginTop:2}},`残り `,el("span",{style:{color:"#f87171",fontWeight:700}},`-${remaining}kg`),` ／ ${daysLeft}日`)),
+        el("div",{style:{textAlign:"right"}},el("div",{style:{fontSize:11,color:"#6b7280"}},"現在"),el("div",{style:{fontSize:20,fontWeight:800,color:"#38bdf8"}},`${latestBw}kg`))
+      ),
+      el("div",{className:"progress-bar"},el("div",{className:"progress-fill",style:{width:pct+"%"}})),
+      el("div",{style:{display:"flex",justifyContent:"space-between",marginTop:3}},el("span",{style:{fontSize:10,color:"#4b5563"}},`${GOAL_START}kg`),el("span",{style:{fontSize:10,color:"#4b5563"}},`${GOAL_TARGET}kg（${GOAL_DATE}）`))
+    ),
+    el("div",{className:"card"},
+      el("div",{className:"row"},
+        el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:wDate,onInput:e=>setState({wDate:e.target.value})})),
+        el("div",{style:{flex:1}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"number",className:"inp",placeholder:"72.5",value:wVal,onInput:e=>setState({wVal:e.target.value}),min:"0",step:"0.1"}))
+      ),
+      el("button",{className:"btn-primary",style:{marginTop:10},onClick:saveWLog},"⚖️ 体重を記録")
+    ),
+    el("div",{className:"card"},
+      el("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}},"📅 火曜日ペース目標"),
+      el("div",{style:{maxHeight:280,overflowY:"auto"}},
+        ...tuesdays.map(d=>{
+          const target=sched[d],actual=actMap[d],isToday=d===today(),isPast=d<today(),diff=actual!=null?(actual-target).toFixed(1):null;
+          return el("div",{className:"tue-grid",style:{background:isToday?"#38bdf811":"none"}},
+            el("span",{style:{fontSize:11,color:isToday?"#38bdf8":isPast?"#4b5563":"#9ca3af",fontWeight:isToday?700:400}},d+(isToday?" 🔵":"")),
+            el("span",{style:{fontSize:11,color:"#9ca3af",textAlign:"center"}},`${target}kg`),
+            actual!=null
+              ? el("span",{style:{fontSize:11,fontWeight:700,color:Number(diff)<=0?"#22c55e":"#f87171",textAlign:"right"}},`${actual}kg (${Number(diff)>0?"+":""}${diff})`)
+              : el("span",{style:{fontSize:11,color:"#374151",textAlign:"right"}},isPast?"未記録":"—")
+          );
+        })
+      )
+    ),
+    wLogs.length>0&&el("div",{className:"card"},
+      el("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:8}},"記録一覧"),
+      ...wLogs.map(l=>{
+        const isTue=new Date(l.date+"T00:00:00").getDay()===2;
+        return el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #2a2a38"}},
+          el("span",{style:{fontSize:12,color:isTue?"#38bdf8":"#9ca3af"}},l.date+(isTue?" 🔵":"")),
+          el("span",{style:{fontSize:15,fontWeight:700,color:"#38bdf8"}},`${l.bw}kg`),
+          el("button",{className:"icon-btn",onClick:()=>delWLog(l.id)},"🗑")
+        );
+      })
+    )
+  );
+}
+
+function renderMax(){
+  const {maxRec,maxVal,maxSaved}=state;
+  const allExNames=[...new Set([...state.exOpts,...state.logs.flatMap(l=>l.exercises.map(e=>e.name))])];
+  return el("div",{className:"body"},
+    maxSaved&&el("div",{className:"badge"},"✅ マックスを保存しました！"),
+    el("div",{className:"card"},
+      el("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:10}},"種目別マックス重量"),
+      el("div",{className:"row"},
+        el("select",{className:"inp",style:{flex:1},value:state.maxEx,onChange:e=>setState({maxEx:e.target.value})},
+          ...allExNames.map(n=>el("option",{value:n},n))
+        ),
+        el("input",{type:"number",className:"inp",style:{flex:1},placeholder:"100",value:maxVal,onInput:e=>setState({maxVal:e.target.value}),min:"0",step:"0.5"})
+      ),
+      el("button",{className:"btn-primary",style:{marginTop:10},onClick:saveMax},"💪 マックスを保存")
+    ),
+    !Object.keys(maxRec).length
+      ? el("div",{className:"empty"},el("div",{className:"empty-icon"},"💪"),el("div",{style:{fontWeight:600}},"まだ記録がありません"))
+      : el("div",{className:"card"},
+          ...Object.entries(maxRec).sort((a,b)=>b[1]-a[1]).map(([name,kg])=>
+            el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #2a2a38"}},
+              el("div",{style:{fontSize:13,fontWeight:700,color:"#e8e6f0"}},name),
+              el("div",{style:{display:"flex",alignItems:"center",gap:8}},
+                el("span",{style:{fontSize:18,fontWeight:900,color:"#c084fc"}},kg,el("span",{style:{fontSize:11,color:"#6b7280"}},"kg")),
+                el("button",{className:"icon-btn",onClick:()=>delMax(name)},"🗑")
+              )
+            )
+          )
+        )
+  );
+}
+
+function renderGraph(){
+  const {logs}=state;
+  const allExNames=[...new Set([...state.exOpts,...logs.flatMap(l=>l.exercises.map(e=>e.name))])];
+  const gEx=state.graphEx||allExNames[0]||"";
+  const m={}; logs.forEach(log=>{log.exercises.forEach(ex=>{if(ex.name===gEx){const mw=Math.max(...ex.sets.map(s=>Number(s.weight)||0));if(!m[log.date]||m[log.date]<mw)m[log.date]=mw;}});});
+  const gData=Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));
+
+  // シンプルなSVGグラフ
+  let chart = null;
+  if(gData.length>=2){
+    const W=300,H=120,pad=30;
+    const vals=gData.map(d=>d[1]);
+    const minV=Math.min(...vals),maxV=Math.max(...vals);
+    const range=maxV-minV||1;
+    const pts=gData.map((d,i)=>{
+      const x=pad+(W-pad*2)*(i/(gData.length-1));
+      const y=H-pad-(H-pad*2)*((d[1]-minV)/range);
+      return [x,y,d[0],d[1]];
+    });
+    const polyline=pts.map(p=>`${p[0]},${p[1]}`).join(" ");
+    chart=el("div",{style:{overflowX:"auto"}},
+      el("svg",{width:W,height:H,style:{display:"block",margin:"0 auto"}},
+        ...[0,1,2].map(i=>{
+          const y=pad+(H-pad*2)*(i/2);
+          const v=(maxV-(range*i/2)).toFixed(1);
+          return el("g",null,el("line",{x1:pad,y1:y,x2:W-pad,y2:y,stroke:"#2a2a38",strokeDasharray:"3 3"}),el("text",{x:pad-2,y:y+4,fontSize:8,fill:"#6b7280",textAnchor:"end"},v));
+        }),
+        el("polyline",{points:polyline,fill:"none",stroke:"#c084fc",strokeWidth:2}),
+        ...pts.map(p=>el("circle",{cx:p[0],cy:p[1],r:3,fill:"#c084fc"})),
+        ...pts.filter((_,i)=>i===0||i===pts.length-1).map(p=>el("text",{x:p[0],y:H-5,fontSize:8,fill:"#6b7280",textAnchor:"middle"},p[2].slice(5)))
+      )
+    );
+  }
+
+  return el("div",{className:"body"},
+    el("div",{className:"card"},
+      el("label",{className:"label"},"種目"),
+      el("select",{className:"inp",value:gEx,onChange:e=>setState({graphEx:e.target.value})},
+        ...allExNames.map(n=>el("option",{value:n},n))
+      )
+    ),
+    gData.length<2
+      ? el("div",{className:"empty"},el("div",{className:"empty-icon"},"📈"),el("div",{style:{fontWeight:600}},"データが足りません"),el("div",{style:{fontSize:12,marginTop:6}},"この種目を2回以上記録すると表示されます"))
+      : el("div",{className:"card"},
+          el("div",{style:{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:12}},`${gEx} — 最大重量の推移`),
+          chart,
+          el("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:12}},
+            ...[["最大",Math.max(...gData.map(d=>d[1]))+"kg"],["記録",gData.length+"回"],["伸び",(gData[gData.length-1][1]-gData[0][1]>0?"+":"")+(gData[gData.length-1][1]-gData[0][1])+"kg"]].map(([l,v])=>
+              el("div",{className:"stat-card"},el("div",{style:{fontSize:17,fontWeight:800,color:"#c084fc"}},v),el("div",{style:{fontSize:10,color:"#6b7280",marginTop:3}},l))
+            )
+          )
+        )
+  );
+}
+
+function render(){
+  const {tab}=state;
+  const app=document.getElementById("app");
+  app.innerHTML="";
+
+  // ヘッダー
+  app.appendChild(el("div",{style:{background:"#18181f",borderBottom:"1px solid #2a2a38",padding:"13px 16px",display:"flex",alignItems:"center",gap:10}},
+    el("span",{style:{fontSize:20,fontWeight:800,letterSpacing:"-0.5px"}},
+      el("span",{style:{color:"#c084fc"}},"LIFT"),el("span",{style:{color:"#e8e6f0"}},"LOG")
+    ),
+    el("span",{style:{fontSize:11,color:"#6b7280",marginLeft:4}},"筋トレ記録")
+  ));
+
+  // タブ
+  app.appendChild(el("div",{className:"tab-bar"},
+    ...([["record","📝 記録"],["history","📋 履歴"],["weight","⚖️ 体重"],["max","💪 MAX"],["graph","📈 グラフ"]]).map(([k,l])=>
+      el("button",{className:"tab"+(tab===k?" active":""),onClick:()=>setState({tab:k})},l)
+    )
+  ));
+
+  // コンテンツ
+  if(tab==="record")app.appendChild(renderRecord());
+  else if(tab==="history")app.appendChild(renderHistory());
+  else if(tab==="weight")app.appendChild(renderWeight());
+  else if(tab==="max")app.appendChild(renderMax());
+  else if(tab==="graph")app.appendChild(renderGraph());
+}
+
+render();
 </script>
 </body>
 </html>
