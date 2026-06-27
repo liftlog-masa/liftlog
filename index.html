@@ -161,7 +161,7 @@ function renderRecord(){
     el("div",{className:"card"},
       el("div",{className:"row"},
         el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:date,onInput:e=>setState({date:e.target.value})})),
-        el("div",{style:{flex:1}},el("label",{className:"label"},"時間（分）"),el("input",{type:"number",className:"inp",placeholder:"60",value:dur,onInput:e=>setState({dur:e.target.value}),min:"0"}))
+        el("div",{style:{flex:1}},el("label",{className:"label"},"時間（分）"),el("input",{type:"text",inputmode:"numeric",className:"inp",placeholder:"60",value:dur,onInput:e=>setState({dur:e.target.value})}))
       ),
       el("div",{style:{marginTop:9}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"text",inputmode:"decimal",pattern:"[0-9]*\.?[0-9]*",className:"inp",placeholder:"72.5",value:bw,onInput:e=>setState({bw:e.target.value})}))
     ),
@@ -187,23 +187,23 @@ function renderRecord(){
       ...ex.sets.map((s,j)=>el("div",{style:{marginBottom:10}},
         el("div",{style:{display:"flex",alignItems:"center",gap:4}},
           el("span",{style:{width:18,fontSize:11,color:"#6b7280",fontWeight:700,textAlign:"center",flexShrink:0}},j+1),
-          el("input",{type:"number",className:"inp",style:{flex:1},placeholder:"kg",value:s.weight,onInput:e=>updSet(i,j,"weight",e.target.value),min:"0",step:"0.5"}),
+          el("input",{type:"text",inputmode:"decimal",className:"inp",style:{flex:1},placeholder:"kg",value:s.weight,onInput:e=>updSet(i,j,"weight",e.target.value)}),
           el("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
-          el("input",{type:"number",className:"inp",style:{flex:1},placeholder:"rep",value:s.reps,onInput:e=>updSet(i,j,"reps",e.target.value),min:"0"}),
+          el("input",{type:"text",inputmode:"numeric",className:"inp",style:{flex:1},placeholder:"rep",value:s.reps,onInput:e=>updSet(i,j,"reps",e.target.value)}),
           el("button",{style:{background:s.assist!=null?"#38bdf822":"#23232e",border:"none",borderRadius:6,color:s.assist!=null?"#38bdf8":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0},onClick:()=>updSet(i,j,"assist",s.assist!=null?null:"")},"補"),
           el("button",{style:{background:s.drops&&s.drops.length?"#c084fc22":"#23232e",border:"none",borderRadius:6,color:s.drops&&s.drops.length?"#c084fc":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0},onClick:()=>addDrop(i,j)},"Drop"),
           ex.sets.length>1&&el("button",{className:"icon-btn",onClick:()=>updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.filter((_,y)=>y!==j)}))},"−")
         ),
         s.assist!=null&&el("div",{className:"assist-row"},
           el("span",{style:{fontSize:11,color:"#38bdf8",fontWeight:700,flexShrink:0}},"＋補助"),
-          el("input",{type:"number",min:"0",className:"inp",style:{flex:1,borderColor:"#38bdf844",color:"#38bdf8"},placeholder:"補助rep数",value:s.assist||"",onInput:e=>updSet(i,j,"assist",e.target.value)}),
+          el("input",{type:"text",inputmode:"numeric",className:"inp",style:{flex:1,borderColor:"#38bdf844",color:"#38bdf8"},placeholder:"補助rep数",value:s.assist||"",onInput:e=>updSet(i,j,"assist",e.target.value)}),
           el("span",{style:{fontSize:11,color:"#38bdf8"}},"rep")
         ),
         ...(s.drops||[]).map((d,di)=>el("div",{className:"drop-row"},
           el("span",{style:{fontSize:10,color:"#c084fc",fontWeight:700,flexShrink:0}},`↓Drop${di+1}`),
-          el("input",{type:"number",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"kg",value:d.weight||"",onInput:e=>updDrop(i,j,di,"weight",e.target.value),min:"0",step:"0.5"}),
+          el("input",{type:"text",inputmode:"decimal",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"kg",value:d.weight||"",onInput:e=>updDrop(i,j,di,"weight",e.target.value)}),
           el("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
-          el("input",{type:"number",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"rep",value:d.reps||"",onInput:e=>updDrop(i,j,di,"reps",e.target.value),min:"0"}),
+          el("input",{type:"text",inputmode:"numeric",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"rep",value:d.reps||"",onInput:e=>updDrop(i,j,di,"reps",e.target.value)}),
           el("button",{className:"icon-btn",onClick:()=>remDrop(i,j,di)},"−")
         ))
       )),
@@ -321,7 +321,7 @@ function renderMax(){
         el("select",{className:"inp",style:{flex:1},value:state.maxEx,onChange:e=>setState({maxEx:e.target.value})},
           ...allExNames.map(n=>el("option",{value:n},n))
         ),
-        el("input",{type:"number",className:"inp",style:{flex:1},placeholder:"100",value:maxVal,onInput:e=>setState({maxVal:e.target.value}),min:"0",step:"0.5"})
+        el("input",{type:"text",inputmode:"decimal",className:"inp",style:{flex:1},placeholder:"100",value:maxVal,onInput:e=>setState({maxVal:e.target.value})})
       ),
       el("button",{className:"btn-primary",style:{marginTop:10},onClick:saveMax},"💪 マックスを保存")
     ),
