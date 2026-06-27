@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LIFTLOG">
+<title>LIFTLOG 筋トレ記録</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.8.0/Recharts.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0f0f13; }
+input, select, textarea { -webkit-appearance: none; appearance: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useEffect } = React;
+const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } = Recharts;
+
+
+const INITIAL_EXERCISES = ["ベンチプレス","スクワット","デッドリフト","ショルダープレス","懸垂","ダンベルカール","レッグプレス"];
+const CONDITION_OPTIONS = ["最高","良い","普通","やや疲れ","疲れ"];
+const CONDITION_COLORS = {"最高":"#22c55e","良い":"#86efac","普通":"#facc15","やや疲れ":"#fb923c","疲れ":"#f87171"};
+const GOAL_START_WEIGHT = 78.2;
+const GOAL_TARGET_WEIGHT = 70.0;
+const GOAL_END_DATE = "2027-12-31";
+const defaultSets = () => [{ weight:"", reps:"", assistReps:null, drops:[] }];
+const today = () => new Date().toISOString().slice(0,10);
+
+function getTuesdays(startDate, endDate) {
+  const tuesdays = [], d = new Date(startDate+"T00:00:00"), end = new Date(endDate+"T00:00:00");
+  while (d.getDay() !== 2) d.setDate(d.getDate()+1);
+  while (d <= end) { tuesdays.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+7); }
+  return tuesdays;
+}
+function buildWeightSchedule(startW, targetW, startDate, endDate) {
+  const tuesdays = getTuesdays(startDate, endDate);
+  if (!tuesdays.length) return {};
+  const drop = startW - targetW, steps = tuesdays.length - 1, s = {};
+  tuesdays.forEach((d,i) => { s[d] = Math.round((startW - drop/steps*i)*10)/10; });
+  return s;
+}
+function formatDuration(m) { return m ? `${Math.floor(m/60)>0?Math.floor(m/60)+"時間":""}${m%60}分` : "—"; }
+
+function App() {
+  const [tab, setTab] = useState("record");
+  const [logs, setLogs] = useState([]);
+  const [weightLogs, setWeightLogs] = useState([]);
+  const [exOptions, setExOptions] = useState(INITIAL_EXERCISES);
+  const [maxRecords, setMaxRecords] = useState({});
+  const [loaded, setLoaded] = useState(false);
+
+  // ── 永続ストレージ読み込み ──
+  useEffect(() => {
+    try {
+      const l = localStorage.getItem("wt_logs");
+      const wl = localStorage.getItem("wt_weightLogs");
+      const eo = localStorage.getItem("wt_exOptions");
+      const mr = localStorage.getItem("wt_maxRecords");
+      if (l) setLogs(JSON.parse(l));
+      if (wl) setWeightLogs(JSON.parse(wl));
+      if (eo) setExOptions(JSON.parse(eo));
+      if (mr) setMaxRecords(JSON.parse(mr));
+    } catch {}
+    setLoaded(true);
+  }, []);
+
+  function persist(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }
+
+  // フォーム
+  const [date, setDate] = useState(today());
+  const [duration, setDuration] = useState("");
+  const [condition, setCondition] = useState("良い");
+  const [memo, setMemo] = useState("");
+  const [exercises, setExercises] = useState([{ name:INITIAL_EXERCISES[0], sets:defaultSets() }]);
+  const [customEx, setCustomEx] = useState("");
+  const [exInputMode, setExInputMode] = useState({});
+  const [bodyWeight, setBodyWeight] = useState("");
+  const [saved, setSaved] = useState(false);
+  const [graphEx, setGraphEx] = useState(INITIAL_EXERCISES[0]);
+  const [maxEx, setMaxEx] = useState(INITIAL_EXERCISES[0]);
+  const [maxVal, setMaxVal] = useState("");
+  const [maxSaved, setMaxSaved] = useState(false);
+  const [wDate, setWDate] = useState(today());
+  const [wValue, setWValue] = useState("");
+  const [wSaved, setWSaved] = useState(false);
+
+  function saveLog() {
+    const log = { id:Date.now(), date, duration:Number(duration)||0, condition, memo, exercises, bodyWeight:Number(bodyWeight)||null };
+    const next = [log,...logs]; setLogs(next); persist("wt_logs", next);
+    setSaved(true); setTimeout(()=>setSaved(false),2000);
+    setExercises([{name:exOptions[0],sets:defaultSets()}]); setDuration(""); setMemo(""); setCondition("良い"); setBodyWeight("");
+  }
+  function deleteLog(id) { const n=logs.filter(l=>l.id!==id); setLogs(n); persist("wt_logs",n); }
+  function addExercise() { setExercises(p=>[...p,{name:exOptions[0],sets:defaultSets()}]); }
+  function removeExercise(i) { setExercises(p=>p.filter((_,idx)=>idx!==i)); }
+  function updateExercise(i,f,v) { setExercises(p=>p.map((ex,idx)=>idx===i?{...ex,[f]:v}:ex)); }
+  function addSet(i) { setExercises(p=>p.map((ex,idx)=>idx===i?{...ex,sets:[...ex.sets,{weight:"",reps:"",assistReps:null,drops:[]}]}:ex)); }
+  function removeSet(i,j) { setExercises(p=>p.map((ex,idx)=>idx===i?{...ex,sets:ex.sets.filter((_,si)=>si!==j)}:ex)); }
+  function updateSet(i,j,f,v) { setExercises(p=>p.map((ex,idx)=>idx===i?{...ex,sets:ex.sets.map((s,si)=>si===j?{...s,[f]:v}:s)}:ex)); }
+  function addDrop(i,j) { setExercises(p=>p.map((ex,idx)=>idx!==i?ex:{...ex,sets:ex.sets.map((s,si)=>si!==j?s:{...s,drops:[...(s.drops||[]),{weight:"",reps:""}]})})); }
+  function removeDrop(i,j,di) { setExercises(p=>p.map((ex,idx)=>idx!==i?ex:{...ex,sets:ex.sets.map((s,si)=>si!==j?s:{...s,drops:s.drops.filter((_,dii)=>dii!==di)})})); }
+  function updateDrop(i,j,di,f,v) { setExercises(p=>p.map((ex,idx)=>idx!==i?ex:{...ex,sets:ex.sets.map((s,si)=>si!==j?s:{...s,drops:s.drops.map((d,dii)=>dii!==di?d:{...d,[f]:v})})})); }
+  function saveExOptions(next) { setExOptions(next); persist("wt_exOptions",next); }
+  function addCustomEx() { const n=customEx.trim(); if(n&&!exOptions.includes(n)) saveExOptions([...exOptions,n]); setCustomEx(""); }
+  function confirmInlineExName(i,name) { const t=name.trim(); if(!t) return; updateExercise(i,"name",t); if(!exOptions.includes(t)) saveExOptions([...exOptions,t]); setExInputMode(p=>({...p,[i]:"select"})); }
+  function saveWeightLog() { const v=Number(wValue); if(!v) return; const e={id:Date.now(),date:wDate,bw:v}; const n=[e,...weightLogs].sort((a,b)=>b.date.localeCompare(a.date)); setWeightLogs(n); persist("wt_weightLogs",n); setWValue(""); setWSaved(true); setTimeout(()=>setWSaved(false),2000); }
+  function deleteWeightLog(id) { const n=weightLogs.filter(l=>l.id!==id); setWeightLogs(n); persist("wt_weightLogs",n); }
+  function saveMaxRecord() { const v=Number(maxVal); if(!v||!maxEx) return; const n={...maxRecords,[maxEx]:v}; setMaxRecords(n); persist("wt_maxRecords",n); setMaxVal(""); setMaxSaved(true); setTimeout(()=>setMaxSaved(false),2000); }
+  function deleteMaxRecord(name) { const n={...maxRecords}; delete n[name]; setMaxRecords(n); persist("wt_maxRecords",n); }
+
+  const graphData = useMemo(()=>{ const m={}; logs.forEach(log=>{ log.exercises.forEach(ex=>{ if(ex.name===graphEx){ const mw=Math.max(...ex.sets.map(s=>Number(s.weight)||0)); if(!m[log.date]||m[log.date]<mw) m[log.date]=mw; } }); }); return Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,w])=>({date:d,weight:w})); },[logs,graphEx]);
+  const allExNames = useMemo(()=>{ const s=new Set(exOptions); logs.forEach(l=>l.exercises.forEach(e=>s.add(e.name))); return [...s]; },[logs,exOptions]);
+
+  const S = {
+    app:{ minHeight:"100vh", background:"#0f0f13", color:"#e8e6f0", fontFamily:"-apple-system,'Inter',system-ui,sans-serif" },
+    header:{ background:"#18181f", borderBottom:"1px solid #2a2a38", padding:"13px 16px", display:"flex", alignItems:"center", gap:10 },
+    logo:{ fontSize:20, fontWeight:800, letterSpacing:"-0.5px", color:"#c084fc" },
+    tabs:{ display:"flex", background:"#18181f", borderBottom:"1px solid #2a2a38" },
+    tab:(a)=>({ flex:1, padding:"11px 2px", fontSize:11, fontWeight:600, border:"none", cursor:"pointer", background:"none", color:a?"#c084fc":"#6b7280", borderBottom:a?"2px solid #c084fc":"2px solid transparent", whiteSpace:"nowrap" }),
+    body:{ padding:"14px 13px", maxWidth:520, margin:"0 auto" },
+    card:{ background:"#18181f", border:"1px solid #2a2a38", borderRadius:12, padding:14, marginBottom:13 },
+    label:{ fontSize:11, fontWeight:700, letterSpacing:"0.08em", color:"#9ca3af", textTransform:"uppercase", marginBottom:5, display:"block" },
+    input:{ width:"100%", background:"#0f0f13", border:"1px solid #2a2a38", borderRadius:8, color:"#e8e6f0", padding:"8px 10px", fontSize:14, outline:"none", boxSizing:"border-box" },
+    select:{ width:"100%", background:"#0f0f13", border:"1px solid #2a2a38", borderRadius:8, color:"#e8e6f0", padding:"8px 10px", fontSize:14, outline:"none", boxSizing:"border-box" },
+    row:{ display:"flex", gap:8 },
+    btn:(v="primary")=>({ padding:v==="sm"?"5px 10px":"9px 14px", borderRadius:8, border:"none", cursor:"pointer", fontWeight:600, fontSize:v==="sm"?12:13, background:v==="primary"?"#c084fc":v==="danger"?"#2a1a1a":"#23232e", color:v==="primary"?"#0f0f13":v==="danger"?"#f87171":"#9ca3af" }),
+    setNum:{ width:18, fontSize:11, color:"#6b7280", fontWeight:700, textAlign:"center", flexShrink:0 },
+    pill:(c)=>({ display:"inline-block", padding:"2px 8px", borderRadius:99, fontSize:11, fontWeight:600, background:c+"22", color:c }),
+    logCard:{ background:"#18181f", border:"1px solid #2a2a38", borderRadius:12, padding:12, marginBottom:10 },
+    badge:{ background:"#22c55e22", color:"#22c55e", borderRadius:8, padding:"8px 14px", textAlign:"center", fontWeight:600, fontSize:13, marginBottom:12 },
+  };
+
+  if (!loaded) return <div style={{...S.app, display:"flex", alignItems:"center", justifyContent:"center", fontSize:14, color:"#6b7280"}}>読み込み中...</div>;
+
+  return (
+    <div style={S.app}>
+      <div style={S.header}>
+        <span style={S.logo}>LIFT<span style={{color:"#e8e6f0"}}>LOG</span></span>
+        <span style={{fontSize:11,color:"#6b7280",marginLeft:4}}>筋トレ記録</span>
+      </div>
+      <div style={S.tabs}>
+        {[["record","📝 記録"],["history","📋 履歴"],["weight","⚖️ 体重"],["max","💪 MAX"],["graph","📈 グラフ"]].map(([k,l])=>(
+          <button key={k} style={S.tab(tab===k)} onClick={()=>setTab(k)}>{l}</button>
+        ))}
+      </div>
+      <div style={S.body}>
+
+        {/* ===== 記録 ===== */}
+        {tab==="record" && <>
+          {saved && <div style={S.badge}>✅ 保存しました！</div>}
+          <div style={S.card}>
+            <div style={S.row}>
+              <div style={{flex:1}}><label style={S.label}>日付</label><input type="date" style={S.input} value={date} onChange={e=>setDate(e.target.value)}/></div>
+              <div style={{flex:1}}><label style={S.label}>時間（分）</label><input type="number" style={S.input} placeholder="60" value={duration} onChange={e=>setDuration(e.target.value)} min="0"/></div>
+            </div>
+            <div style={{marginTop:9}}><label style={S.label}>体重 (kg)</label><input type="number" style={S.input} placeholder="72.5" value={bodyWeight} onChange={e=>setBodyWeight(e.target.value)} min="0" step="0.1"/></div>
+          </div>
+          <div style={S.card}>
+            <label style={S.label}>体調</label>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+              {CONDITION_OPTIONS.map(c=>(
+                <button key={c} onClick={()=>setCondition(c)} style={{...S.btn(), background:condition===c?CONDITION_COLORS[c]:"#23232e", color:condition===c?"#0f0f13":"#9ca3af", padding:"5px 11px", fontSize:12}}>{c}</button>
+              ))}
+            </div>
+          </div>
+          {exercises.map((ex,i)=>(
+            <div key={i} style={S.card}>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+                {exInputMode[i]==="text"
+                  ? <input autoFocus style={{...S.input,flex:1}} defaultValue={ex.name} placeholder="種目名を入力..." onBlur={e=>confirmInlineExName(i,e.target.value)} onKeyDown={e=>{if(e.key==="Enter")confirmInlineExName(i,e.target.value);}}/>
+                  : <select style={{...S.select,flex:1}} value={ex.name} onChange={e=>updateExercise(i,"name",e.target.value)}>{exOptions.map(o=><option key={o}>{o}</option>)}</select>
+                }
+                <button onClick={()=>setExInputMode(p=>({...p,[i]:p[i]==="text"?"select":"text"}))} style={{...S.btn("ghost"),padding:"7px 8px",fontSize:13,flexShrink:0,color:exInputMode[i]==="text"?"#c084fc":"#6b7280"}}>✏️</button>
+                {exercises.length>1 && <button style={S.btn("danger")} onClick={()=>removeExercise(i)}>✕</button>}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"18px 1fr 1fr auto",gap:5,marginBottom:6}}>
+                <span/><span style={{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}}>重量kg</span><span style={{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}}>回数</span><span/>
+              </div>
+              {ex.sets.map((s,j)=>(
+                <div key={j} style={{marginBottom:10}}>
+                  <div style={{display:"flex",alignItems:"center",gap:4}}>
+                    <span style={S.setNum}>{j+1}</span>
+                    <input type="number" style={{...S.input,flex:1}} placeholder="kg" value={s.weight} onChange={e=>updateSet(i,j,"weight",e.target.value)} min="0" step="0.5"/>
+                    <span style={{color:"#4b5563",fontSize:12,flexShrink:0}}>×</span>
+                    <input type="number" style={{...S.input,flex:1}} placeholder="rep" value={s.reps} onChange={e=>updateSet(i,j,"reps",e.target.value)} min="0"/>
+                    <button onClick={()=>updateSet(i,j,"assistReps",s.assistReps!=null?null:"")} style={{background:s.assistReps!=null?"#38bdf822":"#23232e",border:"none",borderRadius:6,color:s.assistReps!=null?"#38bdf8":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0}}>補</button>
+                    <button onClick={()=>addDrop(i,j)} style={{background:s.drops&&s.drops.length?"#c084fc22":"#23232e",border:"none",borderRadius:6,color:s.drops&&s.drops.length?"#c084fc":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0}}>Drop</button>
+                    {ex.sets.length>1 && <button onClick={()=>removeSet(i,j)} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:15,padding:"0 2px",flexShrink:0}}>−</button>}
+                  </div>
+                  {s.assistReps!=null && (
+                    <div style={{display:"flex",alignItems:"center",gap:6,marginTop:5,paddingLeft:24}}>
+                      <span style={{fontSize:11,color:"#38bdf8",fontWeight:700,flexShrink:0}}>＋補助</span>
+                      <input type="number" min="0" style={{...S.input,flex:1,borderColor:"#38bdf844",color:"#38bdf8"}} placeholder="補助rep数" value={s.assistReps??""} onChange={e=>updateSet(i,j,"assistReps",e.target.value)}/>
+                      <span style={{fontSize:11,color:"#38bdf8"}}>rep</span>
+                    </div>
+                  )}
+                  {s.drops&&s.drops.map((d,di)=>(
+                    <div key={di} style={{display:"flex",alignItems:"center",gap:4,marginTop:5,paddingLeft:24}}>
+                      <span style={{fontSize:10,color:"#c084fc",fontWeight:700,flexShrink:0}}>↓Drop{di+1}</span>
+                      <input type="number" style={{...S.input,flex:1,borderColor:"#c084fc44",color:"#c084fc"}} placeholder="kg" value={d.weight??""} onChange={e=>updateDrop(i,j,di,"weight",e.target.value)} min="0" step="0.5"/>
+                      <span style={{color:"#4b5563",fontSize:12,flexShrink:0}}>×</span>
+                      <input type="number" style={{...S.input,flex:1,borderColor:"#c084fc44",color:"#c084fc"}} placeholder="rep" value={d.reps??""} onChange={e=>updateDrop(i,j,di,"reps",e.target.value)} min="0"/>
+                      <button onClick={()=>removeDrop(i,j,di)} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:15,padding:"0 2px",flexShrink:0}}>−</button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <button style={S.btn("sm")} onClick={()=>addSet(i)}>＋ セット追加</button>
+            </div>
+          ))}
+          <div style={{...S.card,padding:10}}>
+            <div style={S.row}>
+              <input style={{...S.input,flex:1}} placeholder="カスタム種目名を追加" value={customEx} onChange={e=>setCustomEx(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addCustomEx()}/>
+              <button style={S.btn("ghost")} onClick={addCustomEx}>追加</button>
+            </div>
+          </div>
+          <button style={{...S.btn(),width:"100%",marginBottom:12}} onClick={addExercise}>＋ 種目を追加</button>
+          <div style={S.card}><label style={S.label}>メモ</label><textarea style={{...S.input,minHeight:64,resize:"vertical"}} placeholder="今日のトレーニングについて..." value={memo} onChange={e=>setMemo(e.target.value)}/></div>
+          <button style={{...S.btn("primary"),width:"100%",fontSize:15,padding:"13px 0"}} onClick={saveLog}>💾 記録を保存</button>
+        </>}
+
+        {/* ===== 履歴 ===== */}
+        {tab==="history" && <>
+          {logs.length===0
+            ? <div style={{textAlign:"center",color:"#6b7280",padding:48}}><div style={{fontSize:40,marginBottom:12}}>🏋️</div><div style={{fontWeight:600}}>まだ記録がありません</div></div>
+            : logs.map(log=>(
+              <div key={log.id} style={S.logCard}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#e8e6f0",marginBottom:3}}>{log.date}</div>
+                    <div style={{fontSize:12,color:"#6b7280",marginBottom:6}}>
+                      {log.duration?`⏱ ${formatDuration(log.duration)}`:""}{log.duration&&log.condition?"　":""}
+                      {log.condition?<span style={S.pill(CONDITION_COLORS[log.condition])}>{log.condition}</span>:""}
+                      {log.bodyWeight?<span style={{marginLeft:6,color:"#9ca3af"}}>⚖️ {log.bodyWeight}kg</span>:""}
+                    </div>
+                  </div>
+                  <button onClick={()=>deleteLog(log.id)} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:17}}>🗑</button>
+                </div>
+                {log.exercises.map((ex,i)=>(
+                  <div key={i} style={{marginBottom:7}}>
+                    <div style={{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:4}}>{ex.name}</div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                      {ex.sets.map((s,j)=>(
+                        <div key={j} style={{display:"flex",flexDirection:"column",gap:2}}>
+                          <span style={{background:"#23232e",borderRadius:5,padding:"2px 8px",fontSize:11,color:"#d1d5db"}}>
+                            {j+1}: {s.weight||"—"}kg×{s.reps||"—"}rep
+                            {s.assistReps!=null&&s.assistReps!==""&&<span style={{color:"#38bdf8"}}> +({s.assistReps}補助)</span>}
+                          </span>
+                          {s.drops&&s.drops.map((d,di)=>(
+                            <span key={di} style={{background:"#1e1230",borderRadius:5,padding:"2px 8px",fontSize:10,color:"#c084fc",marginLeft:8}}>↓ {d.weight||"—"}kg×{d.reps||"—"}rep</span>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {log.memo&&<div style={{marginTop:6,fontSize:11,color:"#9ca3af",borderTop:"1px solid #2a2a38",paddingTop:6}}>💬 {log.memo}</div>}
+              </div>
+            ))
+          }
+        </>}
+
+        {/* ===== 体重 ===== */}
+        {tab==="weight" && (()=>{
+          const allBw=[...weightLogs,...logs.filter(l=>l.bodyWeight).map(l=>({date:l.date,bw:l.bodyWeight}))].sort((a,b)=>a.date.localeCompare(b.date));
+          const scheduleStart="2025-06-22";
+          const schedule=buildWeightSchedule(GOAL_START_WEIGHT,GOAL_TARGET_WEIGHT,scheduleStart,GOAL_END_DATE);
+          const tuesdays=Object.keys(schedule).sort();
+          const actualMap={}; allBw.forEach(l=>{actualMap[l.date]=l.bw;});
+          const latestBw=allBw.length>0?allBw[allBw.length-1].bw:GOAL_START_WEIGHT;
+          const remaining=(latestBw-GOAL_TARGET_WEIGHT).toFixed(1);
+          const daysLeft=Math.ceil((new Date(GOAL_END_DATE)-new Date())/86400000);
+          const bwMap={}; weightLogs.forEach(l=>{bwMap[l.date]=l.bw;}); logs.filter(l=>l.bodyWeight).forEach(l=>{if(!bwMap[l.date])bwMap[l.date]=l.bodyWeight;});
+          const bwData=Object.entries(bwMap).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,bw])=>({date:d,bw}));
+          const pct=Math.max(0,Math.min(100,((GOAL_START_WEIGHT-latestBw)/(GOAL_START_WEIGHT-GOAL_TARGET_WEIGHT))*100));
+          return <>
+            {wSaved&&<div style={S.badge}>✅ 体重を保存しました！</div>}
+            <div style={{...S.card,background:"linear-gradient(135deg,#0f172a,#1e1b4b)",border:"1px solid #38bdf844"}}>
+              <div style={{fontSize:11,fontWeight:700,color:"#38bdf8",marginBottom:8}}>🎯 目標</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
+                <div><div style={{fontSize:26,fontWeight:900,color:"#e8e6f0"}}>{GOAL_TARGET_WEIGHT}<span style={{fontSize:13,color:"#6b7280"}}>kg</span></div><div style={{fontSize:12,color:"#6b7280",marginTop:2}}>残り <span style={{color:"#f87171",fontWeight:700}}>-{remaining}kg</span> ／ {daysLeft}日</div></div>
+                <div style={{textAlign:"right"}}><div style={{fontSize:11,color:"#6b7280"}}>現在</div><div style={{fontSize:20,fontWeight:800,color:"#38bdf8"}}>{latestBw}kg</div></div>
+              </div>
+              <div style={{marginTop:10,background:"#0f0f1380",borderRadius:99,height:6}}><div style={{width:pct+"%",background:"linear-gradient(90deg,#38bdf8,#c084fc)",borderRadius:99,height:6}}/></div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:3}}><span style={{fontSize:10,color:"#4b5563"}}>{GOAL_START_WEIGHT}kg</span><span style={{fontSize:10,color:"#4b5563"}}>{GOAL_TARGET_WEIGHT}kg（{GOAL_END_DATE}）</span></div>
+            </div>
+            <div style={S.card}>
+              <div style={S.row}>
+                <div style={{flex:1}}><label style={S.label}>日付</label><input type="date" style={S.input} value={wDate} onChange={e=>setWDate(e.target.value)}/></div>
+                <div style={{flex:1}}><label style={S.label}>体重 (kg)</label><input type="number" style={S.input} placeholder="72.5" value={wValue} onChange={e=>setWValue(e.target.value)} min="0" step="0.1"/></div>
+              </div>
+              <button style={{...S.btn("primary"),width:"100%",marginTop:10}} onClick={saveWeightLog}>⚖️ 体重を記録</button>
+            </div>
+            {bwData.length>=2&&(
+              <div style={S.card}>
+                <div style={{fontSize:12,fontWeight:700,color:"#38bdf8",marginBottom:12}}>📈 体重グラフ</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={bwData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a38"/>
+                    <XAxis dataKey="date" tick={{fontSize:9,fill:"#6b7280"}} tickLine={false}/>
+                    <YAxis tick={{fontSize:9,fill:"#6b7280"}} tickLine={false} unit="kg" domain={[Math.floor(Math.min(...bwData.map(d=>d.bw),GOAL_TARGET_WEIGHT))-1,Math.ceil(Math.max(...bwData.map(d=>d.bw)))+1]}/>
+                    <Tooltip contentStyle={{background:"#18181f",border:"1px solid #2a2a38",borderRadius:8,fontSize:12}} formatter={v=>[`${v}kg`,"体重"]}/>
+                    <ReferenceLine y={GOAL_TARGET_WEIGHT} stroke="#f87171" strokeDasharray="4 3" label={{value:`目標${GOAL_TARGET_WEIGHT}kg`,position:"insideTopRight",fill:"#f87171",fontSize:9}}/>
+                    <Line type="monotone" dataKey="bw" stroke="#38bdf8" strokeWidth={2.5} dot={{fill:"#38bdf8",r:4}} activeDot={{r:6}}/>
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            <div style={S.card}>
+              <div style={{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}}>📅 火曜日ペース目標</div>
+              <div style={{maxHeight:280,overflowY:"auto"}}>
+                {tuesdays.map(d=>{
+                  const target=schedule[d],actual=actualMap[d],isToday=d===today(),isPast=d<today(),diff=actual!=null?(actual-target).toFixed(1):null;
+                  return <div key={d} style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:4,padding:"6px 4px",borderBottom:"1px solid #2a2a38",background:isToday?"#38bdf811":"none",borderRadius:isToday?4:0}}>
+                    <span style={{fontSize:11,color:isToday?"#38bdf8":isPast?"#4b5563":"#9ca3af",fontWeight:isToday?700:400}}>{d}{isToday?" 🔵":""}</span>
+                    <span style={{fontSize:11,color:"#9ca3af",textAlign:"center"}}>{target}kg</span>
+                    {actual!=null?<span style={{fontSize:11,fontWeight:700,color:Number(diff)<=0?"#22c55e":"#f87171",textAlign:"right"}}>{actual}kg ({Number(diff)>0?"+":""}{diff})</span>:<span style={{fontSize:11,color:"#374151",textAlign:"right"}}>{isPast?"未記録":"—"}</span>}
+                  </div>;
+                })}
+              </div>
+            </div>
+            {weightLogs.length>0&&<div style={S.card}>
+              <div style={{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:8}}>記録一覧</div>
+              {weightLogs.map(l=>{const isTue=new Date(l.date+"T00:00:00").getDay()===2; return <div key={l.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #2a2a38"}}><span style={{fontSize:12,color:isTue?"#38bdf8":"#9ca3af"}}>{l.date}{isTue?" 🔵":""}</span><span style={{fontSize:15,fontWeight:700,color:"#38bdf8"}}>{l.bw}kg</span><button onClick={()=>deleteWeightLog(l.id)} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16}}>🗑</button></div>;})}
+            </div>}
+          </>;
+        })()}
+
+        {/* ===== MAX ===== */}
+        {tab==="max"&&<>
+          {maxSaved&&<div style={S.badge}>✅ マックスを保存しました！</div>}
+          <div style={S.card}>
+            <div style={{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:10}}>種目別マックス重量</div>
+            <div style={S.row}>
+              <select style={{...S.select,flex:1}} value={maxEx} onChange={e=>setMaxEx(e.target.value)}>{allExNames.map(n=><option key={n}>{n}</option>)}</select>
+              <input type="number" style={{...S.input,flex:1}} placeholder="100" value={maxVal} onChange={e=>setMaxVal(e.target.value)} min="0" step="0.5"/>
+            </div>
+            <button style={{...S.btn("primary"),width:"100%",marginTop:10}} onClick={saveMaxRecord}>💪 マックスを保存</button>
+          </div>
+          {Object.keys(maxRecords).length===0
+            ?<div style={{textAlign:"center",color:"#6b7280",padding:40}}><div style={{fontSize:40,marginBottom:12}}>💪</div><div style={{fontWeight:600}}>まだ記録がありません</div></div>
+            :<div style={S.card}>{Object.entries(maxRecords).sort((a,b)=>b[1]-a[1]).map(([name,kg])=>(
+              <div key={name} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #2a2a38"}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#e8e6f0"}}>{name}</div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18,fontWeight:900,color:"#c084fc"}}>{kg}<span style={{fontSize:11,color:"#6b7280"}}>kg</span></span><button onClick={()=>deleteMaxRecord(name)} style={{background:"none",border:"none",color:"#4b5563",cursor:"pointer",fontSize:16}}>🗑</button></div>
+              </div>
+            ))}</div>
+          }
+        </>}
+
+        {/* ===== グラフ ===== */}
+        {tab==="graph"&&<>
+          <div style={S.card}><label style={S.label}>種目</label><select style={S.select} value={graphEx} onChange={e=>setGraphEx(e.target.value)}>{allExNames.map(n=><option key={n}>{n}</option>)}</select></div>
+          {graphData.length<2
+            ?<div style={{textAlign:"center",color:"#6b7280",padding:48}}><div style={{fontSize:40,marginBottom:12}}>📈</div><div style={{fontWeight:600}}>データが足りません</div><div style={{fontSize:12,marginTop:6}}>この種目を2回以上記録すると表示されます</div></div>
+            :<div style={S.card}>
+              <div style={{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:12}}>{graphEx} — 最大重量の推移</div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={graphData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2a2a38"/>
+                  <XAxis dataKey="date" tick={{fontSize:9,fill:"#6b7280"}} tickLine={false}/>
+                  <YAxis tick={{fontSize:9,fill:"#6b7280"}} tickLine={false} unit="kg"/>
+                  <Tooltip contentStyle={{background:"#18181f",border:"1px solid #2a2a38",borderRadius:8,fontSize:12}} formatter={v=>[`${v}kg`,"最大重量"]}/>
+                  <Line type="monotone" dataKey="weight" stroke="#c084fc" strokeWidth={2.5} dot={{fill:"#c084fc",r:4}} activeDot={{r:6}}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          }
+          {graphData.length>0&&<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:13}}>
+            {[["最大重量",Math.max(...graphData.map(d=>d.weight))+"kg"],["記録回数",graphData.length+"回"],["伸び",graphData.length>1?(graphData[graphData.length-1].weight-graphData[0].weight>0?"+":"")+(graphData[graphData.length-1].weight-graphData[0].weight)+"kg":"—"]].map(([l,v])=>(
+              <div key={l} style={{...S.card,textAlign:"center",padding:"12px 6px",marginBottom:0}}><div style={{fontSize:17,fontWeight:800,color:"#c084fc"}}>{v}</div><div style={{fontSize:10,color:"#6b7280",marginTop:3}}>{l}</div></div>
+            ))}
+          </div>}
+          {(()=>{
+            const map={}; weightLogs.forEach(l=>{map[l.date]=l.bw;}); logs.filter(l=>l.bodyWeight).forEach(l=>{if(!map[l.date])map[l.date]=l.bodyWeight;});
+            const bwData=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0])).map(([d,bw])=>({date:d,bw}));
+            if(bwData.length<2) return <div style={{textAlign:"center",color:"#6b7280",padding:24}}><div style={{fontSize:32,marginBottom:8}}>⚖️</div><div style={{fontWeight:600,fontSize:13}}>体重データが足りません</div><div style={{fontSize:12,marginTop:4}}>体重タブから2回以上記録すると表示されます</div></div>;
+            const min=Math.min(...bwData.map(d=>d.bw)), max=Math.max(...bwData.map(d=>d.bw)), diff=(bwData[bwData.length-1].bw-bwData[0].bw).toFixed(1);
+            return <>
+              <div style={S.card}>
+                <div style={{fontSize:12,fontWeight:700,color:"#38bdf8",marginBottom:12}}>⚖️ 体重の推移</div>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={bwData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#2a2a38"/>
+                    <XAxis dataKey="date" tick={{fontSize:9,fill:"#6b7280"}} tickLine={false}/>
+                    <YAxis tick={{fontSize:9,fill:"#6b7280"}} tickLine={false} unit="kg" domain={[Math.floor(min)-1,Math.ceil(max)+1]}/>
+                    <Tooltip contentStyle={{background:"#18181f",border:"1px solid #2a2a38",borderRadius:8,fontSize:12}} formatter={v=>[`${v}kg`,"体重"]}/>
+                    <ReferenceLine y={GOAL_TARGET_WEIGHT} stroke="#f87171" strokeDasharray="4 3" label={{value:`目標${GOAL_TARGET_WEIGHT}kg`,position:"insideTopRight",fill:"#f87171",fontSize:9}}/>
+                    <Line type="monotone" dataKey="bw" stroke="#38bdf8" strokeWidth={2.5} dot={{fill:"#38bdf8",r:4}} activeDot={{r:6}}/>
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+                {[["最小",min+"kg"],["最大",max+"kg"],["増減",(diff>0?"+":"")+diff+"kg"]].map(([l,v])=>(
+                  <div key={l} style={{...S.card,textAlign:"center",padding:"12px 6px",marginBottom:0}}><div style={{fontSize:17,fontWeight:800,color:"#38bdf8"}}>{v}</div><div style={{fontSize:10,color:"#6b7280",marginTop:3}}>{l}</div></div>
+                ))}
+              </div>
+            </>;
+          })()}
+        </>}
+
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
