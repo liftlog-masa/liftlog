@@ -163,7 +163,7 @@ function renderRecord(){
         el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:date,onInput:e=>setState({date:e.target.value})})),
         el("div",{style:{flex:1}},el("label",{className:"label"},"時間（分）"),el("input",{type:"number",className:"inp",placeholder:"60",value:dur,onInput:e=>setState({dur:e.target.value}),min:"0"}))
       ),
-      el("div",{style:{marginTop:9}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"number",className:"inp",placeholder:"72.5",value:bw,onInput:e=>setState({bw:e.target.value}),min:"0",step:"0.1"}))
+      el("div",{style:{marginTop:9}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"text",inputmode:"decimal",pattern:"[0-9]*\.?[0-9]*",className:"inp",placeholder:"72.5",value:bw,onInput:e=>setState({bw:e.target.value})}))
     ),
     el("div",{className:"card"},
       el("label",{className:"label"},"体調"),
@@ -277,7 +277,7 @@ function renderWeight(){
     el("div",{className:"card"},
       el("div",{className:"row"},
         el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:wDate,onInput:e=>setState({wDate:e.target.value})})),
-        el("div",{style:{flex:1}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"number",className:"inp",placeholder:"72.5",value:wVal,onInput:e=>setState({wVal:e.target.value}),min:"0",step:"0.1"}))
+        el("div",{style:{flex:1}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"text",inputmode:"decimal",pattern:"[0-9]*\.?[0-9]*",className:"inp",placeholder:"72.5",value:wVal,onInput:e=>setState({wVal:e.target.value})}))
       ),
       el("button",{className:"btn-primary",style:{marginTop:10},onClick:saveWLog},"⚖️ 体重を記録")
     ),
