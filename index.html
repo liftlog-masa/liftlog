@@ -468,6 +468,10 @@ function buildWeight(){
   });
   tc.appendChild(ts);div.appendChild(tc);
 
+  // 体重グラフ
+  const wgraph=buildWeightGraph();
+  if(wgraph)div.appendChild(wgraph);
+
   // 記録一覧
   if(S.wl.length){
     const wc=el("div","card");
@@ -518,6 +522,46 @@ function buildMax(){
   div.appendChild(rc);return div;
 }
 
+
+// ======== 体重グラフ描画 ========
+function buildWeightGraph(){
+  const allBw=[...S.wl,...S.logs.filter(l=>l.bw).map(l=>({date:l.date,bw:l.bw}))].sort((a,b)=>a.date.localeCompare(b.date));
+  if(allBw.length<2)return null;
+  const vals=allBw.map(d=>d.bw),minV=Math.min(...vals,GT)-0.5,maxV=Math.max(...vals)+0.5,rng=maxV-minV||1;
+  const W=300,H=140,pd=38;
+  const pts=allBw.map((d,i)=>[pd+(W-pd*2)*(i/(allBw.length-1)),H-pd-(H-pd*2)*((d.bw-minV)/rng),d.date,d.bw]);
+  const ns2=document.createElementNS.bind(document,"http://www.w3.org/2000/svg");
+  const svg=ns2("svg");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.style.width="100%";svg.style.display="block";
+  // グリッド線と目盛り
+  [0,1,2].forEach(i=>{
+    const y=pd+(H-pd*2)*(i/2),v=(maxV-(maxV-minV)*i/2).toFixed(1);
+    const ln=ns2("line");ln.setAttribute("x1",pd);ln.setAttribute("y1",y);ln.setAttribute("x2",W-pd);ln.setAttribute("y2",y);ln.setAttribute("stroke","#2a2a38");ln.setAttribute("stroke-dasharray","3 3");svg.appendChild(ln);
+    const tx=ns2("text");tx.setAttribute("x",pd-3);tx.setAttribute("y",y+4);tx.setAttribute("font-size","8");tx.setAttribute("fill","#6b7280");tx.setAttribute("text-anchor","end");tx.textContent=v;svg.appendChild(tx);
+  });
+  // 目標ライン
+  const gy=H-pd-(H-pd*2)*((GT-minV)/rng);
+  const gl=ns2("line");gl.setAttribute("x1",pd);gl.setAttribute("y1",gy);gl.setAttribute("x2",W-pd);gl.setAttribute("y2",gy);gl.setAttribute("stroke","#f87171");gl.setAttribute("stroke-dasharray","4 3");svg.appendChild(gl);
+  const gt2=ns2("text");gt2.setAttribute("x",W-pd);gt2.setAttribute("y",gy-3);gt2.setAttribute("font-size","8");gt2.setAttribute("fill","#f87171");gt2.setAttribute("text-anchor","end");gt2.textContent=`目標${GT}kg`;svg.appendChild(gt2);
+  // 折れ線
+  const pl=ns2("polyline");pl.setAttribute("points",pts.map(p=>`${p[0]},${p[1]}`).join(" "));pl.setAttribute("fill","none");pl.setAttribute("stroke","#38bdf8");pl.setAttribute("stroke-width","2.5");svg.appendChild(pl);
+  pts.forEach(p=>{const c=ns2("circle");c.setAttribute("cx",p[0]);c.setAttribute("cy",p[1]);c.setAttribute("r","4");c.setAttribute("fill","#38bdf8");svg.appendChild(c);});
+  [pts[0],pts[pts.length-1]].forEach(p=>{const tx=ns2("text");tx.setAttribute("x",p[0]);tx.setAttribute("y",H-3);tx.setAttribute("font-size","8");tx.setAttribute("fill","#6b7280");tx.setAttribute("text-anchor","middle");tx.textContent=p[2].slice(5);svg.appendChild(tx);});
+  const card=el("div","card");
+  card.appendChild(el("div",null,{fontSize:"12px",fontWeight:700,color:"#38bdf8",marginBottom:"10px"},"📈 体重グラフ"));
+  card.appendChild(svg);
+  // サマリー
+  const diff=allBw[allBw.length-1].bw-allBw[0].bw;
+  const st=el("div",null,{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px",marginTop:"10px"});
+  [["最小",Math.min(...vals)+"kg"],["最大",Math.max(...vals)+"kg"],["増減",(diff>0?"+":"")+diff.toFixed(1)+"kg"]].forEach(([l,v])=>{
+    const sc=el("div","card",{textAlign:"center",padding:"10px 6px",marginBottom:"0"});
+    sc.appendChild(el("div",null,{fontSize:"16px",fontWeight:800,color:"#38bdf8"},v));
+    sc.appendChild(el("div",null,{fontSize:"10px",color:"#6b7280",marginTop:"3px"},l));
+    st.appendChild(sc);
+  });
+  card.appendChild(st);
+  return card;
+}
+
 // ======== グラフタブ ========
 function buildGraph(){
   const ax=allEx();
@@ -554,7 +598,18 @@ function buildGraph(){
     sc.appendChild(el("div",null,{fontSize:"10px",color:"#6b7280",marginTop:"3px"},l));
     st.appendChild(sc);
   });
-  div.appendChild(st);return div;
+  div.appendChild(st);
+
+  // 体重グラフ
+  const wg=buildWeightGraph();
+  if(wg){
+    wg.querySelector("div").textContent="⚖️ 体重の推移";
+    wg.querySelector("div").style.color="#38bdf8";
+    div.appendChild(wg);
+  } else {
+    div.appendChild(el("div","empty",null,el("div",null,{fontSize:"32px",marginBottom:"8px"},"⚖️"),el("div",null,{fontWeight:600,fontSize:"13px"},"体重データが足りません"),el("div",null,{fontSize:"12px",marginTop:"4px"},"体重タブから2回以上記録すると表示されます")));
+  }
+  return div;
 }
 
 draw();
