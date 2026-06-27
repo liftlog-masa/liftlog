@@ -9,423 +9,555 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0f0f13;color:#e8e6f0;font-family:-apple-system,system-ui,sans-serif;min-height:100vh}
-input,select,textarea{-webkit-appearance:none;appearance:none;font-family:inherit}
+input,select,textarea{-webkit-appearance:none;appearance:none;font-family:inherit;font-size:16px;color:#e8e6f0}
 .card{background:#18181f;border:1px solid #2a2a38;border-radius:12px;padding:14px;margin-bottom:13px}
-.label{font-size:11px;font-weight:700;letter-spacing:.08em;color:#9ca3af;text-transform:uppercase;margin-bottom:5px;display:block}
-.inp{width:100%;background:#0f0f13;border:1px solid #2a2a38;border-radius:8px;color:#e8e6f0;padding:8px 10px;font-size:14px;outline:none}
-.btn-primary{background:#c084fc;color:#0f0f13;border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer;width:100%}
-.btn-sm{background:#23232e;color:#9ca3af;border:none;border-radius:8px;padding:5px 10px;font-weight:600;font-size:12px;cursor:pointer}
-.btn-ghost{background:#23232e;color:#9ca3af;border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer}
-.btn-danger{background:#2a1a1a;color:#f87171;border:none;border-radius:8px;padding:9px 14px;font-weight:600;font-size:13px;cursor:pointer}
+.lbl{font-size:11px;font-weight:700;letter-spacing:.08em;color:#9ca3af;text-transform:uppercase;margin-bottom:5px;display:block}
+.inp{width:100%;background:#0f0f13;border:1px solid #2a2a38;border-radius:8px;color:#e8e6f0;padding:10px;outline:none;font-size:16px;display:block}
+.inp:focus{border-color:#c084fc}
 .row{display:flex;gap:8px}
-.tab-bar{display:flex;background:#18181f;border-bottom:1px solid #2a2a38}
+.tabs{display:flex;background:#18181f;border-bottom:1px solid #2a2a38;position:sticky;top:0;z-index:10}
 .tab{flex:1;padding:11px 2px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:none;color:#6b7280;border-bottom:2px solid transparent;white-space:nowrap}
-.tab.active{color:#c084fc;border-bottom:2px solid #c084fc}
-.badge{background:#22c55e22;color:#22c55e;border-radius:8px;padding:8px 14px;text-align:center;font-weight:600;font-size:13px;margin-bottom:12px}
-.body{padding:14px 13px;max-width:520px;margin:0 auto}
-.icon-btn{background:none;border:none;color:#4b5563;cursor:pointer;font-size:16px;padding:0 2px}
-.drop-row{display:flex;align-items:center;gap:4px;margin-top:5px;padding-left:24px}
-.assist-row{display:flex;align-items:center;gap:6px;margin-top:5px;padding-left:24px}
-.progress-bar{background:#0f0f1380;border-radius:99px;height:6px;margin-top:10px}
-.progress-fill{background:linear-gradient(90deg,#38bdf8,#c084fc);border-radius:99px;height:6px;transition:width .5s}
-.tue-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:6px 4px;border-bottom:1px solid #2a2a38}
-.empty{text-align:center;color:#6b7280;padding:48px}
-.empty-icon{font-size:40px;margin-bottom:12px}
-.log-card{background:#18181f;border:1px solid #2a2a38;border-radius:12px;padding:12px;margin-bottom:10px}
-.set-tag{background:#23232e;border-radius:5px;padding:2px 8px;font-size:11px;color:#d1d5db;display:inline-block;margin:2px}
-.drop-tag{background:#1e1230;border-radius:5px;padding:2px 8px;font-size:10px;color:#c084fc;display:inline-block;margin:2px;margin-left:8px}
-.stat-card{background:#18181f;border:1px solid #2a2a38;border-radius:12px;padding:12px 6px;text-align:center}
-select option{background:#18181f;color:#e8e6f0}
-input:focus{outline:2px solid #c084fc44}
+.tab.on{color:#c084fc;border-bottom-color:#c084fc}
+.badge{background:#22c55e22;color:#22c55e;border-radius:8px;padding:8px;text-align:center;font-weight:600;margin-bottom:12px}
+.body{padding:14px;max-width:520px;margin:0 auto}
+.pbtn{background:#c084fc;color:#0f0f13;border:none;border-radius:8px;padding:12px;font-weight:700;font-size:15px;cursor:pointer;width:100%;margin-top:4px}
+.sbtn{background:#23232e;color:#9ca3af;border:none;border-radius:8px;padding:6px 12px;font-weight:600;font-size:12px;cursor:pointer}
+.dbtn{background:#2a1a1a;color:#f87171;border:none;border-radius:8px;padding:8px 10px;font-weight:600;font-size:13px;cursor:pointer}
+.ibtn{background:none;border:none;color:#4b5563;cursor:pointer;font-size:18px;padding:4px 6px;line-height:1}
+.empty{text-align:center;color:#6b7280;padding:48px 20px}
+.pgbar{background:#0f0f1380;border-radius:99px;height:6px;margin-top:10px}
+.pgfill{background:linear-gradient(90deg,#38bdf8,#c084fc);border-radius:99px;height:6px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:7px 4px;border-bottom:1px solid #2a2a38}
+.stag{background:#23232e;border-radius:5px;padding:3px 8px;font-size:11px;color:#d1d5db;display:inline-block;margin:2px}
+.dtag{background:#1e1230;border-radius:5px;padding:2px 8px;font-size:10px;color:#c084fc;display:inline-block;margin:2px 2px 2px 10px}
+.cnd{border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.snb{background:#23232e;border:none;border-radius:6px;font-size:10px;font-weight:700;padding:5px 6px;cursor:pointer}
+select option{background:#18181f}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="hdr"></div>
+<div id="tbs"></div>
+<div id="cnt"></div>
+
 <script>
-// ── データ ──
-const EXERCISES = ["ベンチプレス","スクワット","デッドリフト","ショルダープレス","懸垂","ダンベルカール","レッグプレス"];
-const CONDITIONS = ["最高","良い","普通","やや疲れ","疲れ"];
-const CCOLORS = {"最高":"#22c55e","良い":"#86efac","普通":"#facc15","やや疲れ":"#fb923c","疲れ":"#f87171"};
-const GOAL_START=78.2, GOAL_TARGET=70.0, GOAL_DATE="2027-12-31";
+// ======== データ ========
+const EX0=["ベンチプレス","スクワット","デッドリフト","ショルダープレス","懸垂","ダンベルカール","レッグプレス"];
+const CONDS=["最高","良い","普通","やや疲れ","疲れ"];
+const CC={"最高":"#22c55e","良い":"#86efac","普通":"#facc15","やや疲れ":"#fb923c","疲れ":"#f87171"};
+const GS=78.2,GT=70.0,GD="2027-12-31";
 
-function ls(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch{return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
-function today(){return new Date().toISOString().slice(0,10);}
-function fmtDur(m){return m?`${Math.floor(m/60)>0?Math.floor(m/60)+"時間":""}${m%60}分`:"—";}
-function newSet(){return{weight:"",reps:"",assist:null,drops:[]};}
+function ls(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;}}
+function lss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+function td(){return new Date().toISOString().slice(0,10);}
+function dur(m){if(!m)return"—";return(Math.floor(m/60)>0?Math.floor(m/60)+"時間":"")+m%60+"分";}
+function ns(){return{w:"",r:"",as:null,dr:[]};}
+function clone(x){return JSON.parse(JSON.stringify(x));}
 
-function getTuesdays(start,end){
-  const r=[],d=new Date(start+"T00:00:00"),e=new Date(end+"T00:00:00");
-  while(d.getDay()!==2)d.setDate(d.getDate()+1);
-  while(d<=e){r.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+7);}
-  return r;
+// ======== 状態 ========
+const S={
+  tab:"record",
+  logs:ls("wt_logs")||[],
+  wl:ls("wt_wl")||[],
+  exo:ls("wt_exo")||[...EX0],
+  mr:ls("wt_mr")||{},
+  dt:td(),du:"",co:"良い",me:"",bw:"",
+  exs:[{nm:EX0[0],sets:[ns()]}],
+  ce:"",em:{},sv:false,
+  wd:td(),wv:"",ws:false,
+  mx:EX0[0],mv:"",ms:false,
+  gx:EX0[0],
+};
+
+function allEx(){return[...new Set([...S.exo,...S.logs.flatMap(l=>(l.exs||[]).map(e=>e.nm))])];}
+
+// ======== DOM ヘルパー ========
+function el(tag,cls,st,...ch){
+  const d=document.createElement(tag);
+  if(cls)d.className=cls;
+  if(st)Object.assign(d.style,st);
+  ch.flat(9).forEach(c=>{
+    if(c==null||c===false)return;
+    d.appendChild(typeof c==="string"||typeof c==="number"?document.createTextNode(String(c)):c);
+  });
+  return d;
 }
-function buildSched(sw,tw,sd,ed){
-  const t=getTuesdays(sd,ed);if(!t.length)return{};
-  const drop=sw-tw,steps=t.length-1,s={};
-  t.forEach((d,i)=>{s[d]=Math.round((sw-drop/steps*i)*10)/10;});
+function on(el,ev,fn){el.addEventListener(ev,fn);return el;}
+function inp(cls,ph,val,mode,onv){
+  // onv = 値が変わったときのコールバック。draw()は呼ばない
+  const i=document.createElement("input");
+  i.className=cls||"inp";
+  i.type="text";
+  if(mode)i.setAttribute("inputmode",mode);
+  i.placeholder=ph||"";
+  i.value=val||"";
+  if(onv)i.addEventListener("input",e=>{onv(e.target.value);});
+  return i;
+}
+function btn(cls,txt,fn){const b=document.createElement("button");b.className=cls;b.textContent=txt;b.addEventListener("click",fn);return b;}
+function sel(opts,val,fn){
+  const s=document.createElement("select");
+  s.className="inp";
+  opts.forEach(o=>{const op=document.createElement("option");op.value=o;op.textContent=o;if(o===val)op.selected=true;s.appendChild(op);});
+  s.addEventListener("change",e=>fn(e.target.value));
   return s;
 }
 
-// ── 状態 ──
-let state = {
-  tab:"record",
-  logs: ls("wt_logs")||[],
-  wLogs: ls("wt_weightLogs")||[],
-  exOpts: ls("wt_exOptions")||[...EXERCISES],
-  maxRec: ls("wt_maxRecords")||{},
-  // 記録フォーム
-  date:today(), dur:"", cond:"良い", memo:"", bw:"",
-  exs:[{name:EXERCISES[0],sets:[newSet()]}],
-  custEx:"", exMode:{}, saved:false,
-  // 体重タブ
-  wDate:today(), wVal:"", wSaved:false,
-  // MAXタブ
-  maxEx:EXERCISES[0], maxVal:"", maxSaved:false,
-};
-
-function setState(patch){
-  Object.assign(state,patch);
-  render();
-}
-
-function el(tag,attrs,...children){
-  const e=document.createElement(tag);
-  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
-    if(k==="style"&&typeof v==="object"){Object.assign(e.style,v);}
-    else if(k.startsWith("on")&&typeof v==="function"){e.addEventListener(k.slice(2).toLowerCase(),v);}
-    else if(k==="className"){e.className=v;}
-    else if(k==="htmlFor"){e.htmlFor=v;}
-    else if(k in e){e[k]=v;}
-    else{e.setAttribute(k,v);}
-  });
-  children.flat(Infinity).forEach(c=>{
-    if(c==null||c===false)return;
-    e.appendChild(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c);
-  });
-  return e;
-}
-
-// ── アクション ──
-function saveLog(){
-  const log={id:Date.now(),date:state.date,duration:Number(state.dur)||0,condition:state.cond,memo:state.memo,exercises:state.exs,bodyWeight:Number(state.bw)||null};
-  const next=[log,...state.logs];
-  lsSet("wt_logs",next);
-  setState({logs:next,exs:[{name:state.exOpts[0],sets:[newSet()]}],dur:"",memo:"",cond:"良い",bw:"",saved:true});
-  setTimeout(()=>setState({saved:false}),2000);
-}
-function delLog(id){const n=state.logs.filter(l=>l.id!==id);lsSet("wt_logs",n);setState({logs:n});}
-
-function saveWLog(){
-  const v=Number(state.wVal);if(!v)return;
-  const e={id:Date.now(),date:state.wDate,bw:v};
-  const n=[e,...state.wLogs].sort((a,b)=>b.date.localeCompare(a.date));
-  lsSet("wt_weightLogs",n);
-  setState({wLogs:n,wVal:"",wSaved:true});
-  setTimeout(()=>setState({wSaved:false}),2000);
-}
-function delWLog(id){const n=state.wLogs.filter(l=>l.id!==id);lsSet("wt_weightLogs",n);setState({wLogs:n});}
-
-function saveMax(){
-  const v=Number(state.maxVal);if(!v)return;
-  const n={...state.maxRec,[state.maxEx]:v};
-  lsSet("wt_maxRecords",n);
-  setState({maxRec:n,maxVal:"",maxSaved:true});
-  setTimeout(()=>setState({maxSaved:false}),2000);
-}
-function delMax(name){const n={...state.maxRec};delete n[name];lsSet("wt_maxRecords",n);setState({maxRec:n});}
-
-function updExs(fn){setState({exs:fn(state.exs)});}
-function updSet(i,j,f,v){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,[f]:v})}));}
-function addDrop(i,j){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:[...(s.drops||[]),{weight:"",reps:""}]})}));}
-function remDrop(i,j,di){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:s.drops.filter((_,z)=>z!==di)})}));}
-function updDrop(i,j,di,f,v){updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.map((s,y)=>y!==j?s:{...s,drops:s.drops.map((d,z)=>z!==di?d:{...d,[f]:v})})}));}
-function confirmEx(i,name){
-  const t=name.trim();if(!t)return;
-  updExs(exs=>exs.map((e,x)=>x===i?{...e,name:t}:e));
-  if(!state.exOpts.includes(t)){const n=[...state.exOpts,t];lsSet("wt_exOptions",n);setState({exOpts:n});}
-  setState({exMode:{...state.exMode,[i]:"sel"}});
-}
-function addCustEx(){
-  const n=state.custEx.trim();
-  if(n&&!state.exOpts.includes(n)){const o=[...state.exOpts,n];lsSet("wt_exOptions",o);setState({exOpts:o});}
-  setState({custEx:""});
-}
-
-// ── 描画 ──
-function renderRecord(){
-  const {date,dur,cond,bw,exs,memo,saved,custEx,exOpts}=state; const exMode=state.exMode;
-  const allExNames=[...new Set([...exOpts,...state.logs.flatMap(l=>l.exercises.map(e=>e.name))])];
-
-  return el("div",{className:"body"},
-    saved&&el("div",{className:"badge"},"✅ 保存しました！"),
-    el("div",{className:"card"},
-      el("div",{className:"row"},
-        el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:date,onInput:e=>setState({date:e.target.value})})),
-        el("div",{style:{flex:1}},el("label",{className:"label"},"時間（分）"),el("input",{type:"text",inputmode:"numeric",className:"inp",placeholder:"60",value:dur,onChange:e=>setState({dur:e.target.value})}))
-      ),
-      el("div",{style:{marginTop:9}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"text",inputmode:"decimal",pattern:"[0-9]*\.?[0-9]*",className:"inp",placeholder:"72.5",value:bw,onChange:e=>setState({bw:e.target.value})}))
-    ),
-    el("div",{className:"card"},
-      el("label",{className:"label"},"体調"),
-      el("div",{style:{display:"flex",gap:6,flexWrap:"wrap"}},
-        ...CONDITIONS.map(c=>el("button",{style:{background:cond===c?CCOLORS[c]:"#23232e",color:cond===c?"#0f0f13":"#9ca3af",border:"none",borderRadius:8,padding:"5px 11px",fontSize:12,fontWeight:600,cursor:"pointer"},onClick:()=>setState({cond:c})},c))
-      )
-    ),
-    ...exs.map((ex,i)=>el("div",{className:"card"},
-      el("div",{style:{display:"flex",alignItems:"center",gap:6,marginBottom:10}},
-        state.exMode[i]==="text"
-          ? el("input",{className:"inp",style:{flex:1},value:ex.name,onChange:e=>updExs(exs=>exs.map((x,xi)=>xi===i?{...x,name:e.target.value}:x)),onBlur:e=>confirmEx(i,e.target.value),onKeyDown:e=>{if(e.key==="Enter")confirmEx(i,e.target.value);}})
-          : el("select",{className:"inp",style:{flex:1},value:ex.name,onChange:e=>updExs(exs=>exs.map((x,xi)=>xi===i?{...x,name:e.target.value}:x))},
-              ...allExNames.map(o=>el("option",{value:o},o))
-            ),
-        el("button",{style:{background:"#23232e",border:"none",borderRadius:6,color:state.exMode[i]==="text"?"#c084fc":"#6b7280",fontSize:13,padding:"7px 8px",cursor:"pointer",flexShrink:0},onClick:()=>{const m={...state.exMode,[i]:state.exMode[i]==="text"?"sel":"text"};setState({exMode:m});}},"✏️"),
-        exs.length>1&&el("button",{className:"btn-danger",style:{padding:"7px 10px"},onClick:()=>updExs(exs=>exs.filter((_,x)=>x!==i))},"✕")
-      ),
-      el("div",{style:{display:"grid",gridTemplateColumns:"18px 1fr 1fr auto",gap:5,marginBottom:6}},
-        el("span"),el("span",{style:{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}},"重量kg"),el("span",{style:{fontSize:10,color:"#6b7280",fontWeight:700,textAlign:"center"}},"回数"),el("span")
-      ),
-      ...ex.sets.map((s,j)=>el("div",{style:{marginBottom:10}},
-        el("div",{style:{display:"flex",alignItems:"center",gap:4}},
-          el("span",{style:{width:18,fontSize:11,color:"#6b7280",fontWeight:700,textAlign:"center",flexShrink:0}},j+1),
-          el("input",{type:"text",inputmode:"decimal",className:"inp",style:{flex:1},placeholder:"kg",value:s.weight,onInput:e=>{updSet(i,j,"weight",e.target.value);}},
-          el("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
-          el("input",{type:"text",inputmode:"numeric",className:"inp",style:{flex:1},placeholder:"rep",value:s.reps,onChange:e=>updSet(i,j,"reps",e.target.value)}),
-          el("button",{style:{background:s.assist!=null?"#38bdf822":"#23232e",border:"none",borderRadius:6,color:s.assist!=null?"#38bdf8":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0},onClick:()=>updSet(i,j,"assist",s.assist!=null?null:"")},"補"),
-          el("button",{style:{background:s.drops&&s.drops.length?"#c084fc22":"#23232e",border:"none",borderRadius:6,color:s.drops&&s.drops.length?"#c084fc":"#6b7280",fontSize:10,fontWeight:700,padding:"5px 6px",cursor:"pointer",flexShrink:0},onClick:()=>addDrop(i,j)},"Drop"),
-          ex.sets.length>1&&el("button",{className:"icon-btn",onClick:()=>updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:e.sets.filter((_,y)=>y!==j)}))},"−")
-        ),
-        s.assist!=null&&el("div",{className:"assist-row"},
-          el("span",{style:{fontSize:11,color:"#38bdf8",fontWeight:700,flexShrink:0}},"＋補助"),
-          el("input",{type:"text",inputmode:"numeric",className:"inp",style:{flex:1,borderColor:"#38bdf844",color:"#38bdf8"},placeholder:"補助rep数",value:s.assist||"",onChange:e=>updSet(i,j,"assist",e.target.value)}),
-          el("span",{style:{fontSize:11,color:"#38bdf8"}},"rep")
-        ),
-        ...(s.drops||[]).map((d,di)=>el("div",{className:"drop-row"},
-          el("span",{style:{fontSize:10,color:"#c084fc",fontWeight:700,flexShrink:0}},`↓Drop${di+1}`),
-          el("input",{type:"text",inputmode:"decimal",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"kg",value:d.weight||"",onChange:e=>updDrop(i,j,di,"weight",e.target.value)}),
-          el("span",{style:{color:"#4b5563",fontSize:12,flexShrink:0}},"×"),
-          el("input",{type:"text",inputmode:"numeric",className:"inp",style:{flex:1,borderColor:"#c084fc44",color:"#c084fc"},placeholder:"rep",value:d.reps||"",onChange:e=>updDrop(i,j,di,"reps",e.target.value)}),
-          el("button",{className:"icon-btn",onClick:()=>remDrop(i,j,di)},"−")
-        ))
-      )),
-      el("button",{className:"btn-sm",onClick:()=>updExs(exs=>exs.map((e,x)=>x!==i?e:{...e,sets:[...e.sets,newSet()]}))},"＋ セット追加")
-    )),
-    el("div",{className:"card",style:{padding:10}},
-      el("div",{className:"row"},
-        el("input",{className:"inp",style:{flex:1},placeholder:"カスタム種目名を追加",value:custEx,onChange:e=>setState({custEx:e.target.value}),onKeyDown:e=>e.key==="Enter"&&addCustEx()}),
-        el("button",{className:"btn-ghost",onClick:addCustEx},"追加")
-      )
-    ),
-    el("button",{className:"btn-ghost",style:{width:"100%",marginBottom:12},onClick:()=>updExs(exs=>[...exs,{name:state.exOpts[0],sets:[newSet()]}])},"＋ 種目を追加"),
-    el("div",{className:"card"},el("label",{className:"label"},"メモ"),el("textarea",{className:"inp",style:{minHeight:64,resize:"vertical"},placeholder:"今日のトレーニングについて...",value:memo,onChange:e=>setState({memo:e.target.value})})),
-    el("button",{className:"btn-primary",onClick:saveLog},"💾 記録を保存")
-  );
-}
-
-function renderHistory(){
-  const {logs}=state;
-  if(!logs.length)return el("div",{className:"body"},el("div",{className:"empty"},el("div",{className:"empty-icon"},"🏋️"),el("div",{style:{fontWeight:600}},"まだ記録がありません")));
-  return el("div",{className:"body"},...logs.map(log=>
-    el("div",{className:"log-card"},
-      el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},
-        el("div",null,
-          el("div",{style:{fontSize:14,fontWeight:700,color:"#e8e6f0",marginBottom:3}},log.date),
-          el("div",{style:{fontSize:12,color:"#6b7280",marginBottom:6}},
-            log.duration?`⏱ ${fmtDur(log.duration)} `:"",
-            log.condition?el("span",{style:{display:"inline-block",padding:"2px 8px",borderRadius:99,fontSize:11,fontWeight:600,background:(CCOLORS[log.condition]||"#6b7280")+"22",color:CCOLORS[log.condition]||"#6b7280"}},log.condition):"",
-            log.bodyWeight?` ⚖️ ${log.bodyWeight}kg`:""
-          )
-        ),
-        el("button",{className:"icon-btn",onClick:()=>delLog(log.id)},"🗑")
-      ),
-      ...log.exercises.map((ex,i)=>el("div",{style:{marginBottom:7}},
-        el("div",{style:{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:4}},ex.name),
-        el("div",{style:{display:"flex",flexWrap:"wrap",gap:4}},
-          ...ex.sets.map((s,j)=>el("div",{style:{display:"flex",flexDirection:"column",gap:2}},
-            el("span",{className:"set-tag"},`${j+1}: ${s.weight||"—"}kg×${s.reps||"—"}rep`,s.assist!=null&&s.assist!==""?el("span",{style:{color:"#38bdf8"}},` +(${s.assist}補助)`):null),
-            ...(s.drops||[]).map((d,di)=>el("span",{className:"drop-tag"},`↓ ${d.weight||"—"}kg×${d.reps||"—"}rep`))
-          ))
-        )
-      )),
-      log.memo&&el("div",{style:{marginTop:6,fontSize:11,color:"#9ca3af",borderTop:"1px solid #2a2a38",paddingTop:6}},`💬 ${log.memo}`)
-    )
-  ));
-}
-
-function renderWeight(){
-  const {wLogs,logs,wDate,wVal,wSaved}=state;
-  const allBw=[...wLogs,...logs.filter(l=>l.bodyWeight).map(l=>({date:l.date,bw:l.bodyWeight}))].sort((a,b)=>a.date.localeCompare(b.date));
-  const schedStart=allBw.length>0?allBw[0].date:"2025-06-22";
-  const sched=buildSched(GOAL_START,GOAL_TARGET,schedStart,GOAL_DATE);
-  const tuesdays=Object.keys(sched).sort();
-  const actMap={}; allBw.forEach(l=>{actMap[l.date]=l.bw;});
-  const latestBw=allBw.length>0?allBw[allBw.length-1].bw:GOAL_START;
-  const remaining=(latestBw-GOAL_TARGET).toFixed(1);
-  const daysLeft=Math.ceil((new Date(GOAL_DATE)-new Date())/86400000);
-  const pct=Math.max(0,Math.min(100,((GOAL_START-latestBw)/(GOAL_START-GOAL_TARGET))*100));
-
-  return el("div",{className:"body"},
-    wSaved&&el("div",{className:"badge"},"✅ 体重を保存しました！"),
-    el("div",{className:"card",style:{background:"linear-gradient(135deg,#0f172a,#1e1b4b)",border:"1px solid #38bdf844"}},
-      el("div",{style:{fontSize:11,fontWeight:700,color:"#38bdf8",marginBottom:8}},"🎯 目標"),
-      el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}},
-        el("div",null,el("div",{style:{fontSize:26,fontWeight:900,color:"#e8e6f0"}},`${GOAL_TARGET}`,el("span",{style:{fontSize:13,color:"#6b7280"}},"kg")),el("div",{style:{fontSize:12,color:"#6b7280",marginTop:2}},`残り `,el("span",{style:{color:"#f87171",fontWeight:700}},`-${remaining}kg`),` ／ ${daysLeft}日`)),
-        el("div",{style:{textAlign:"right"}},el("div",{style:{fontSize:11,color:"#6b7280"}},"現在"),el("div",{style:{fontSize:20,fontWeight:800,color:"#38bdf8"}},`${latestBw}kg`))
-      ),
-      el("div",{className:"progress-bar"},el("div",{className:"progress-fill",style:{width:pct+"%"}})),
-      el("div",{style:{display:"flex",justifyContent:"space-between",marginTop:3}},el("span",{style:{fontSize:10,color:"#4b5563"}},`${GOAL_START}kg`),el("span",{style:{fontSize:10,color:"#4b5563"}},`${GOAL_TARGET}kg（${GOAL_DATE}）`))
-    ),
-    el("div",{className:"card"},
-      el("div",{className:"row"},
-        el("div",{style:{flex:1}},el("label",{className:"label"},"日付"),el("input",{type:"date",className:"inp",value:wDate,onInput:e=>setState({wDate:e.target.value})})),
-        el("div",{style:{flex:1}},el("label",{className:"label"},"体重 (kg)"),el("input",{type:"text",inputmode:"decimal",pattern:"[0-9]*\.?[0-9]*",className:"inp",placeholder:"72.5",value:wVal,onChange:e=>setState({wVal:e.target.value})}))
-      ),
-      el("button",{className:"btn-primary",style:{marginTop:10},onClick:saveWLog},"⚖️ 体重を記録")
-    ),
-    el("div",{className:"card"},
-      el("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:8}},"📅 火曜日ペース目標"),
-      el("div",{style:{maxHeight:280,overflowY:"auto"}},
-        ...tuesdays.map(d=>{
-          const target=sched[d],actual=actMap[d],isToday=d===today(),isPast=d<today(),diff=actual!=null?(actual-target).toFixed(1):null;
-          return el("div",{className:"tue-grid",style:{background:isToday?"#38bdf811":"none"}},
-            el("span",{style:{fontSize:11,color:isToday?"#38bdf8":isPast?"#4b5563":"#9ca3af",fontWeight:isToday?700:400}},d+(isToday?" 🔵":"")),
-            el("span",{style:{fontSize:11,color:"#9ca3af",textAlign:"center"}},`${target}kg`),
-            actual!=null
-              ? el("span",{style:{fontSize:11,fontWeight:700,color:Number(diff)<=0?"#22c55e":"#f87171",textAlign:"right"}},`${actual}kg (${Number(diff)>0?"+":""}${diff})`)
-              : el("span",{style:{fontSize:11,color:"#374151",textAlign:"right"}},isPast?"未記録":"—")
-          );
-        })
-      )
-    ),
-    wLogs.length>0&&el("div",{className:"card"},
-      el("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:8}},"記録一覧"),
-      ...wLogs.map(l=>{
-        const isTue=new Date(l.date+"T00:00:00").getDay()===2;
-        return el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #2a2a38"}},
-          el("span",{style:{fontSize:12,color:isTue?"#38bdf8":"#9ca3af"}},l.date+(isTue?" 🔵":"")),
-          el("span",{style:{fontSize:15,fontWeight:700,color:"#38bdf8"}},`${l.bw}kg`),
-          el("button",{className:"icon-btn",onClick:()=>delWLog(l.id)},"🗑")
-        );
-      })
-    )
-  );
-}
-
-function renderMax(){
-  const {maxRec,maxVal,maxSaved}=state;
-  const allExNames=[...new Set([...state.exOpts,...state.logs.flatMap(l=>l.exercises.map(e=>e.name))])];
-  return el("div",{className:"body"},
-    maxSaved&&el("div",{className:"badge"},"✅ マックスを保存しました！"),
-    el("div",{className:"card"},
-      el("div",{style:{fontSize:11,fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:10}},"種目別マックス重量"),
-      el("div",{className:"row"},
-        el("select",{className:"inp",style:{flex:1},value:state.maxEx,onChange:e=>setState({maxEx:e.target.value})},
-          ...allExNames.map(n=>el("option",{value:n},n))
-        ),
-        el("input",{type:"text",inputmode:"decimal",className:"inp",style:{flex:1},placeholder:"100",value:maxVal,onChange:e=>setState({maxVal:e.target.value})})
-      ),
-      el("button",{className:"btn-primary",style:{marginTop:10},onClick:saveMax},"💪 マックスを保存")
-    ),
-    !Object.keys(maxRec).length
-      ? el("div",{className:"empty"},el("div",{className:"empty-icon"},"💪"),el("div",{style:{fontWeight:600}},"まだ記録がありません"))
-      : el("div",{className:"card"},
-          ...Object.entries(maxRec).sort((a,b)=>b[1]-a[1]).map(([name,kg])=>
-            el("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #2a2a38"}},
-              el("div",{style:{fontSize:13,fontWeight:700,color:"#e8e6f0"}},name),
-              el("div",{style:{display:"flex",alignItems:"center",gap:8}},
-                el("span",{style:{fontSize:18,fontWeight:900,color:"#c084fc"}},kg,el("span",{style:{fontSize:11,color:"#6b7280"}},"kg")),
-                el("button",{className:"icon-btn",onClick:()=>delMax(name)},"🗑")
-              )
-            )
-          )
-        )
-  );
-}
-
-function renderGraph(){
-  const {logs}=state;
-  const allExNames=[...new Set([...state.exOpts,...logs.flatMap(l=>l.exercises.map(e=>e.name))])];
-  const gEx=state.graphEx||allExNames[0]||"";
-  const m={}; logs.forEach(log=>{log.exercises.forEach(ex=>{if(ex.name===gEx){const mw=Math.max(...ex.sets.map(s=>Number(s.weight)||0));if(!m[log.date]||m[log.date]<mw)m[log.date]=mw;}});});
-  const gData=Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));
-
-  // シンプルなSVGグラフ
-  let chart = null;
-  if(gData.length>=2){
-    const W=300,H=120,pad=30;
-    const vals=gData.map(d=>d[1]);
-    const minV=Math.min(...vals),maxV=Math.max(...vals);
-    const range=maxV-minV||1;
-    const pts=gData.map((d,i)=>{
-      const x=pad+(W-pad*2)*(i/(gData.length-1));
-      const y=H-pad-(H-pad*2)*((d[1]-minV)/range);
-      return [x,y,d[0],d[1]];
-    });
-    const polyline=pts.map(p=>`${p[0]},${p[1]}`).join(" ");
-    chart=el("div",{style:{overflowX:"auto"}},
-      el("svg",{width:W,height:H,style:{display:"block",margin:"0 auto"}},
-        ...[0,1,2].map(i=>{
-          const y=pad+(H-pad*2)*(i/2);
-          const v=(maxV-(range*i/2)).toFixed(1);
-          return el("g",null,el("line",{x1:pad,y1:y,x2:W-pad,y2:y,stroke:"#2a2a38",strokeDasharray:"3 3"}),el("text",{x:pad-2,y:y+4,fontSize:8,fill:"#6b7280",textAnchor:"end"},v));
-        }),
-        el("polyline",{points:polyline,fill:"none",stroke:"#c084fc",strokeWidth:2}),
-        ...pts.map(p=>el("circle",{cx:p[0],cy:p[1],r:3,fill:"#c084fc"})),
-        ...pts.filter((_,i)=>i===0||i===pts.length-1).map(p=>el("text",{x:p[0],y:H-5,fontSize:8,fill:"#6b7280",textAnchor:"middle"},p[2].slice(5)))
-      )
-    );
+// ======== 再描画 ========
+// draw() はタブ切り替え・構造変化のみ。input値更新では呼ばない
+function draw(){
+  // ヘッダー
+  const hdr=document.getElementById("hdr");
+  if(!hdr.hasChildNodes()){
+    hdr.style.cssText="background:#18181f;border-bottom:1px solid #2a2a38;padding:13px 16px;display:flex;align-items:center;gap:10px";
+    const logo=el("span",null,null);
+    const l1=el("span",null,{color:"#c084fc",fontSize:"20px",fontWeight:800,letterSpacing:"-0.5px"},"LIFT");
+    const l2=el("span",null,{color:"#e8e6f0",fontSize:"20px",fontWeight:800},"LOG");
+    logo.appendChild(l1);logo.appendChild(l2);
+    hdr.appendChild(logo);
+    hdr.appendChild(el("span",null,{fontSize:"11px",color:"#6b7280",marginLeft:"4px"},"筋トレ記録"));
   }
 
-  return el("div",{className:"body"},
-    el("div",{className:"card"},
-      el("label",{className:"label"},"種目"),
-      el("select",{className:"inp",value:gEx,onChange:e=>setState({graphEx:e.target.value})},
-        ...allExNames.map(n=>el("option",{value:n},n))
-      )
-    ),
-    gData.length<2
-      ? el("div",{className:"empty"},el("div",{className:"empty-icon"},"📈"),el("div",{style:{fontWeight:600}},"データが足りません"),el("div",{style:{fontSize:12,marginTop:6}},"この種目を2回以上記録すると表示されます"))
-      : el("div",{className:"card"},
-          el("div",{style:{fontSize:12,fontWeight:700,color:"#c084fc",marginBottom:12}},`${gEx} — 最大重量の推移`),
-          chart,
-          el("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:12}},
-            ...[["最大",Math.max(...gData.map(d=>d[1]))+"kg"],["記録",gData.length+"回"],["伸び",(gData[gData.length-1][1]-gData[0][1]>0?"+":"")+(gData[gData.length-1][1]-gData[0][1])+"kg"]].map(([l,v])=>
-              el("div",{className:"stat-card"},el("div",{style:{fontSize:17,fontWeight:800,color:"#c084fc"}},v),el("div",{style:{fontSize:10,color:"#6b7280",marginTop:3}},l))
-            )
-          )
-        )
-  );
-}
-
-function render(){
-  const {tab}=state;
-  const app=document.getElementById("app");
-  app.innerHTML="";
-
-  // ヘッダー
-  app.appendChild(el("div",{style:{background:"#18181f",borderBottom:"1px solid #2a2a38",padding:"13px 16px",display:"flex",alignItems:"center",gap:10}},
-    el("span",{style:{fontSize:20,fontWeight:800,letterSpacing:"-0.5px"}},
-      el("span",{style:{color:"#c084fc"}},"LIFT"),el("span",{style:{color:"#e8e6f0"}},"LOG")
-    ),
-    el("span",{style:{fontSize:11,color:"#6b7280",marginLeft:4}},"筋トレ記録")
-  ));
-
   // タブ
-  app.appendChild(el("div",{className:"tab-bar"},
-    ...([["record","📝 記録"],["history","📋 履歴"],["weight","⚖️ 体重"],["max","💪 MAX"],["graph","📈 グラフ"]]).map(([k,l])=>
-      el("button",{className:"tab"+(tab===k?" active":""),onClick:()=>setState({tab:k})},l)
-    )
-  ));
+  const tbs=document.getElementById("tbs");
+  tbs.innerHTML="";
+  tbs.className="tabs";
+  [["record","📝 記録"],["history","📋 履歴"],["weight","⚖️ 体重"],["max","💪 MAX"],["graph","📈 グラフ"]].forEach(([k,l])=>{
+    const b=btn("tab"+(S.tab===k?" on":""),l,()=>{S.tab=k;draw();});
+    tbs.appendChild(b);
+  });
 
   // コンテンツ
-  if(tab==="record")app.appendChild(renderRecord());
-  else if(tab==="history")app.appendChild(renderHistory());
-  else if(tab==="weight")app.appendChild(renderWeight());
-  else if(tab==="max")app.appendChild(renderMax());
-  else if(tab==="graph")app.appendChild(renderGraph());
+  const cnt=document.getElementById("cnt");
+  cnt.innerHTML="";
+  if(S.tab==="record")cnt.appendChild(buildRecord());
+  else if(S.tab==="history")cnt.appendChild(buildHistory());
+  else if(S.tab==="weight")cnt.appendChild(buildWeight());
+  else if(S.tab==="max")cnt.appendChild(buildMax());
+  else if(S.tab==="graph")cnt.appendChild(buildGraph());
 }
 
-render();
+// ======== 記録タブ ========
+function buildRecord(){
+  const div=el("div","body");
+  if(S.sv){const b=el("div","badge",null,"✅ 保存しました！");div.appendChild(b);}
+
+  // 日付・時間・体重
+  const c1=el("div","card");
+  const row1=el("div","row");
+  const d1=el("div",null,{flex:1});
+  d1.appendChild(el("label","lbl",null,"日付"));
+  const di=document.createElement("input");di.className="inp";di.type="date";di.value=S.dt;
+  di.addEventListener("change",e=>{S.dt=e.target.value;});
+  d1.appendChild(di);
+  const d2=el("div",null,{flex:1});
+  d2.appendChild(el("label","lbl",null,"時間（分）"));
+  d2.appendChild(inp("inp","60",S.du,"numeric",v=>{S.du=v;}));
+  row1.appendChild(d1);row1.appendChild(d2);c1.appendChild(row1);
+  const d3=el("div",null,{marginTop:"9px"});
+  d3.appendChild(el("label","lbl",null,"体重 (kg)"));
+  d3.appendChild(inp("inp","72.5",S.bw,"decimal",v=>{S.bw=v;}));
+  c1.appendChild(d3);div.appendChild(c1);
+
+  // 体調
+  const c2=el("div","card");
+  c2.appendChild(el("label","lbl",null,"体調"));
+  const cRow=el("div",null,{display:"flex",gap:"6px",flexWrap:"wrap"});
+  CONDS.forEach(c=>{
+    const b=document.createElement("button");
+    b.className="cnd";
+    b.textContent=c;
+    b.style.background=S.co===c?CC[c]:"#23232e";
+    b.style.color=S.co===c?"#0f0f13":"#9ca3af";
+    b.addEventListener("click",()=>{S.co=c;draw();});
+    cRow.appendChild(b);
+  });
+  c2.appendChild(cRow);div.appendChild(c2);
+
+  // 種目
+  S.exs.forEach((ex,i)=>{
+    const card=el("div","card");
+    const nmRow=el("div",null,{display:"flex",alignItems:"center",gap:"6px",marginBottom:"10px"});
+
+    if(S.em[i]==="text"){
+      // テキスト入力モード（ペンを押した後）
+      const ti=document.createElement("input");
+      ti.className="inp";ti.type="text";ti.value=ex.nm;ti.style.flex="1";
+      ti.addEventListener("input",e=>{S.exs[i].nm=e.target.value;});
+      ti.addEventListener("blur",e=>{confirmEx(i,e.target.value);});
+      ti.addEventListener("keydown",e=>{if(e.key==="Enter")confirmEx(i,e.target.value);});
+      nmRow.appendChild(ti);
+      // オートフォーカス
+      setTimeout(()=>ti.focus(),50);
+    } else {
+      const ax=allEx();
+      nmRow.appendChild(sel(ax,ex.nm,v=>{S.exs[i].nm=v;}));
+    }
+
+    // ✏️ ペンボタン
+    const penB=document.createElement("button");
+    penB.style.cssText="background:#23232e;border:none;border-radius:6px;font-size:13px;padding:7px 9px;cursor:pointer;flex-shrink:0;color:"+(S.em[i]==="text"?"#c084fc":"#6b7280");
+    penB.textContent="✏️";
+    penB.addEventListener("click",()=>{
+      S.em={...S.em,[i]:S.em[i]==="text"?"sel":"text"};
+      draw();
+    });
+    nmRow.appendChild(penB);
+
+    if(S.exs.length>1){
+      const rb=btn("dbtn","✕",()=>{S.exs.splice(i,1);draw();});
+      rb.style.padding="7px 10px";
+      nmRow.appendChild(rb);
+    }
+    card.appendChild(nmRow);
+
+    // セットヘッダー
+    const sh=el("div",null,{display:"grid",gridTemplateColumns:"18px 1fr 1fr auto",gap:"5px",marginBottom:"6px"});
+    sh.appendChild(el("span"));
+    sh.appendChild(el("span",null,{fontSize:"10px",color:"#6b7280",fontWeight:700,textAlign:"center"},"重量kg"));
+    sh.appendChild(el("span",null,{fontSize:"10px",color:"#6b7280",fontWeight:700,textAlign:"center"},"回数"));
+    sh.appendChild(el("span"));
+    card.appendChild(sh);
+
+    // セット行
+    ex.sets.forEach((s,j)=>{
+      const sd=el("div",null,{marginBottom:"10px"});
+      const mr=el("div",null,{display:"flex",alignItems:"center",gap:"4px"});
+      mr.appendChild(el("span",null,{width:"18px",fontSize:"11px",color:"#6b7280",fontWeight:700,textAlign:"center",flexShrink:0},j+1));
+
+      // 重量
+      const wi=document.createElement("input");
+      wi.className="inp";wi.type="text";wi.setAttribute("inputmode","decimal");
+      wi.placeholder="kg";wi.value=s.w||"";wi.style.flex="1";
+      wi.addEventListener("input",e=>{S.exs[i].sets[j].w=e.target.value;});
+      mr.appendChild(wi);
+      mr.appendChild(el("span",null,{color:"#4b5563",fontSize:"12px",flexShrink:0},"×"));
+
+      // 回数
+      const ri=document.createElement("input");
+      ri.className="inp";ri.type="text";ri.setAttribute("inputmode","numeric");
+      ri.placeholder="rep";ri.value=s.r||"";ri.style.flex="1";
+      ri.addEventListener("input",e=>{S.exs[i].sets[j].r=e.target.value;});
+      mr.appendChild(ri);
+
+      // 補助ボタン
+      const asB=document.createElement("button");
+      asB.className="snb";asB.textContent="補";
+      asB.style.background=s.as!=null?"#38bdf822":"#23232e";
+      asB.style.color=s.as!=null?"#38bdf8":"#6b7280";
+      asB.addEventListener("click",()=>{S.exs[i].sets[j].as=s.as!=null?null:"";draw();});
+      mr.appendChild(asB);
+
+      // Dropボタン
+      const dpB=document.createElement("button");
+      dpB.className="snb";dpB.textContent="Drop";
+      dpB.style.background=s.dr&&s.dr.length?"#c084fc22":"#23232e";
+      dpB.style.color=s.dr&&s.dr.length?"#c084fc":"#6b7280";
+      dpB.addEventListener("click",()=>{S.exs[i].sets[j].dr=[...(S.exs[i].sets[j].dr||[]),{w:"",r:""}];draw();});
+      mr.appendChild(dpB);
+
+      if(ex.sets.length>1){
+        mr.appendChild(btn("ibtn","−",()=>{S.exs[i].sets.splice(j,1);draw();}));
+      }
+      sd.appendChild(mr);
+
+      // 補助入力
+      if(s.as!=null){
+        const ar=el("div",null,{display:"flex",alignItems:"center",gap:"6px",marginTop:"5px",paddingLeft:"24px"});
+        ar.appendChild(el("span",null,{fontSize:"11px",color:"#38bdf8",fontWeight:700,flexShrink:0},"＋補助"));
+        const ai=document.createElement("input");
+        ai.className="inp";ai.type="text";ai.setAttribute("inputmode","numeric");
+        ai.placeholder="補助rep数";ai.value=s.as||"";ai.style.flex="1";
+        ai.style.borderColor="#38bdf844";ai.style.color="#38bdf8";
+        ai.addEventListener("input",e=>{S.exs[i].sets[j].as=e.target.value;});
+        ar.appendChild(ai);
+        ar.appendChild(el("span",null,{fontSize:"11px",color:"#38bdf8"},"rep"));
+        sd.appendChild(ar);
+      }
+
+      // ドロップセット
+      (s.dr||[]).forEach((d,di)=>{
+        const dr=el("div",null,{display:"flex",alignItems:"center",gap:"4px",marginTop:"5px",paddingLeft:"24px"});
+        dr.appendChild(el("span",null,{fontSize:"10px",color:"#c084fc",fontWeight:700,flexShrink:0},`↓Drop${di+1}`));
+        const dw=document.createElement("input");
+        dw.className="inp";dw.type="text";dw.setAttribute("inputmode","decimal");
+        dw.placeholder="kg";dw.value=d.w||"";dw.style.flex="1";
+        dw.style.borderColor="#c084fc44";dw.style.color="#c084fc";
+        dw.addEventListener("input",e=>{S.exs[i].sets[j].dr[di].w=e.target.value;});
+        dr.appendChild(dw);
+        dr.appendChild(el("span",null,{color:"#4b5563",fontSize:"12px",flexShrink:0},"×"));
+        const drr=document.createElement("input");
+        drr.className="inp";drr.type="text";drr.setAttribute("inputmode","numeric");
+        drr.placeholder="rep";drr.value=d.r||"";drr.style.flex="1";
+        drr.style.borderColor="#c084fc44";drr.style.color="#c084fc";
+        drr.addEventListener("input",e=>{S.exs[i].sets[j].dr[di].r=e.target.value;});
+        dr.appendChild(drr);
+        dr.appendChild(btn("ibtn","−",()=>{S.exs[i].sets[j].dr.splice(di,1);draw();}));
+        sd.appendChild(dr);
+      });
+
+      card.appendChild(sd);
+    });
+
+    card.appendChild(btn("sbtn","＋ セット追加",()=>{S.exs[i].sets.push(ns());draw();}));
+    div.appendChild(card);
+  });
+
+  // カスタム種目
+  const cc=el("div","card",{padding:"10px"});
+  const cr=el("div","row");
+  const ci=document.createElement("input");
+  ci.className="inp";ci.type="text";ci.placeholder="カスタム種目名を追加";ci.value=S.ce;ci.style.flex="1";
+  ci.addEventListener("input",e=>{S.ce=e.target.value;});
+  ci.addEventListener("keydown",e=>{if(e.key==="Enter")addCE();});
+  cr.appendChild(ci);
+  cr.appendChild(btn("sbtn","追加",addCE));
+  cc.appendChild(cr);div.appendChild(cc);
+
+  const addExBtn=btn("sbtn","＋ 種目を追加",()=>{S.exs.push({nm:S.exo[0],sets:[ns()]});draw();});
+  addExBtn.style.cssText="width:100%;margin-bottom:12px";
+  div.appendChild(addExBtn);
+
+  // メモ
+  const mc=el("div","card");
+  mc.appendChild(el("label","lbl",null,"メモ"));
+  const ta=document.createElement("textarea");
+  ta.className="inp";ta.style.minHeight="64px";ta.style.resize="vertical";
+  ta.placeholder="今日のトレーニングについて...";ta.value=S.me;
+  ta.addEventListener("input",e=>{S.me=e.target.value;});
+  mc.appendChild(ta);div.appendChild(mc);
+
+  div.appendChild(btn("pbtn","💾 記録を保存",saveLog));
+  return div;
+}
+
+function confirmEx(i,name){
+  const t=name.trim();if(!t)return;
+  S.exs[i].nm=t;
+  if(!S.exo.includes(t)){S.exo.push(t);lss("wt_exo",S.exo);}
+  S.em={...S.em,[i]:"sel"};
+  draw();
+}
+function addCE(){
+  const n=S.ce.trim();
+  if(n&&!S.exo.includes(n)){S.exo.push(n);lss("wt_exo",S.exo);}
+  S.ce="";draw();
+}
+function saveLog(){
+  const log={id:Date.now(),date:S.dt,duration:Number(S.du)||0,condition:S.co,memo:S.me,exs:clone(S.exs),bw:Number(S.bw)||null};
+  S.logs.unshift(log);lss("wt_logs",S.logs);
+  S.exs=[{nm:S.exo[0],sets:[ns()]}];S.du="";S.me="";S.co="良い";S.bw="";S.sv=true;
+  draw();setTimeout(()=>{S.sv=false;draw();},2000);
+}
+
+// ======== 履歴タブ ========
+function buildHistory(){
+  const div=el("div","body");
+  if(!S.logs.length){
+    div.appendChild(el("div","empty",null,el("div",null,{fontSize:"40px",marginBottom:"12px"},"🏋️"),el("div",null,{fontWeight:600},"まだ記録がありません")));
+    return div;
+  }
+  S.logs.forEach(log=>{
+    const card=el("div","card");
+    const top=el("div",null,{display:"flex",justifyContent:"space-between",alignItems:"flex-start"});
+    const info=el("div");
+    info.appendChild(el("div",null,{fontSize:"14px",fontWeight:700,color:"#e8e6f0",marginBottom:"3px"},log.date));
+    const meta=el("div",null,{fontSize:"12px",color:"#6b7280",marginBottom:"6px"});
+    if(log.duration)meta.appendChild(document.createTextNode(`⏱ ${dur(log.duration)} `));
+    if(log.condition){
+      const p=el("span",null,{display:"inline-block",padding:"2px 8px",borderRadius:"99px",fontSize:"11px",fontWeight:600,background:(CC[log.condition]||"#888")+"22",color:CC[log.condition]||"#888"},log.condition);
+      meta.appendChild(p);
+    }
+    if(log.bw)meta.appendChild(document.createTextNode(` ⚖️ ${log.bw}kg`));
+    info.appendChild(meta);top.appendChild(info);
+    top.appendChild(btn("ibtn","🗑",()=>{S.logs=S.logs.filter(l=>l.id!==log.id);lss("wt_logs",S.logs);draw();}));
+    card.appendChild(top);
+    (log.exs||[]).forEach(ex=>{
+      const ed=el("div",null,{marginBottom:"7px"});
+      ed.appendChild(el("div",null,{fontSize:"12px",fontWeight:700,color:"#c084fc",marginBottom:"4px"},ex.nm));
+      const tags=el("div",null,{display:"flex",flexWrap:"wrap"});
+      (ex.sets||[]).forEach((s,j)=>{
+        const tw=el("div",null,{display:"flex",flexDirection:"column"});
+        let txt=`${j+1}: ${s.w||"—"}kg×${s.r||"—"}rep`;
+        if(s.as!=null&&s.as!=="")txt+=` +(${s.as}補助)`;
+        tw.appendChild(el("span","stag",null,txt));
+        (s.dr||[]).forEach(d=>tw.appendChild(el("span","dtag",null,`↓ ${d.w||"—"}kg×${d.r||"—"}rep`)));
+        tags.appendChild(tw);
+      });
+      ed.appendChild(tags);card.appendChild(ed);
+    });
+    if(log.memo)card.appendChild(el("div",null,{marginTop:"6px",fontSize:"11px",color:"#9ca3af",borderTop:"1px solid #2a2a38",paddingTop:"6px"},`💬 ${log.memo}`));
+    div.appendChild(card);
+  });
+  return div;
+}
+
+// ======== 体重タブ ========
+function tues(s,e){
+  const r=[],d=new Date(s+"T00:00:00"),en=new Date(e+"T00:00:00");
+  while(d.getDay()!==2)d.setDate(d.getDate()+1);
+  while(d<=en){r.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+7);}return r;
+}
+function sched(sw,tw,sd,ed){
+  const t=tues(sd,ed);if(!t.length)return{};
+  const dp=sw-tw,st=t.length-1,s={};
+  t.forEach((d,i)=>{s[d]=Math.round((sw-dp/st*i)*10)/10;});return s;
+}
+function buildWeight(){
+  const div=el("div","body");
+  if(S.ws)div.appendChild(el("div","badge",null,"✅ 体重を保存しました！"));
+  const allBw=[...S.wl,...S.logs.filter(l=>l.bw).map(l=>({date:l.date,bw:l.bw}))].sort((a,b)=>a.date.localeCompare(b.date));
+  const ss=allBw.length>0?allBw[0].date:"2025-06-22";
+  const sc=sched(GS,GT,ss,GD);
+  const tu=Object.keys(sc).sort();
+  const am={};allBw.forEach(l=>{am[l.date]=l.bw;});
+  const lb=allBw.length>0?allBw[allBw.length-1].bw:GS;
+  const rem=(lb-GT).toFixed(1);
+  const dl=Math.ceil((new Date(GD)-new Date())/86400000);
+  const pct=Math.max(0,Math.min(100,((GS-lb)/(GS-GT))*100));
+
+  // 目標バナー
+  const bc=el("div","card",{background:"linear-gradient(135deg,#0f172a,#1e1b4b)",border:"1px solid #38bdf844"});
+  bc.appendChild(el("div",null,{fontSize:"11px",fontWeight:700,color:"#38bdf8",marginBottom:"8px"},"🎯 目標"));
+  const bi=el("div",null,{display:"flex",justifyContent:"space-between",alignItems:"flex-end"});
+  const bl=el("div");
+  bl.appendChild(el("div",null,{fontSize:"26px",fontWeight:900,color:"#e8e6f0"},`${GT}`,el("span",null,{fontSize:"13px",color:"#6b7280"},"kg")));
+  bl.appendChild(el("div",null,{fontSize:"12px",color:"#6b7280",marginTop:"2px"},`残り `,el("span",null,{color:"#f87171",fontWeight:700},`-${rem}kg`),` ／ ${dl}日`));
+  const br=el("div",null,{textAlign:"right"});
+  br.appendChild(el("div",null,{fontSize:"11px",color:"#6b7280"},"現在"));
+  br.appendChild(el("div",null,{fontSize:"20px",fontWeight:800,color:"#38bdf8"},`${lb}kg`));
+  bi.appendChild(bl);bi.appendChild(br);bc.appendChild(bi);
+  bc.appendChild(el("div","pgbar",null,el("div","pgfill",{width:pct+"%"})));
+  bc.appendChild(el("div",null,{display:"flex",justifyContent:"space-between",marginTop:"3px"},el("span",null,{fontSize:"10px",color:"#4b5563"},`${GS}kg`),el("span",null,{fontSize:"10px",color:"#4b5563"},`${GT}kg（${GD}）`)));
+  div.appendChild(bc);
+
+  // 入力
+  const ic=el("div","card");
+  const ir=el("div","row");
+  const id1=el("div",null,{flex:1});id1.appendChild(el("label","lbl",null,"日付"));
+  const wdi=document.createElement("input");wdi.className="inp";wdi.type="date";wdi.value=S.wd;wdi.addEventListener("change",e=>{S.wd=e.target.value;});
+  id1.appendChild(wdi);
+  const id2=el("div",null,{flex:1});id2.appendChild(el("label","lbl",null,"体重 (kg)"));
+  const wvi=document.createElement("input");
+  wvi.className="inp";wvi.type="text";wvi.setAttribute("inputmode","decimal");
+  wvi.placeholder="72.5";wvi.value=S.wv;
+  wvi.addEventListener("input",e=>{S.wv=e.target.value;});
+  id2.appendChild(wvi);
+  ir.appendChild(id1);ir.appendChild(id2);ic.appendChild(ir);
+  ic.appendChild(btn("pbtn","⚖️ 体重を記録",()=>{
+    const v=Number(S.wv);if(!v)return;
+    const en={id:Date.now(),date:S.wd,bw:v};
+    S.wl=[en,...S.wl].sort((a,b)=>b.date.localeCompare(a.date));
+    lss("wt_wl",S.wl);S.wv="";S.ws=true;draw();
+    setTimeout(()=>{S.ws=false;draw();},2000);
+  }));
+  div.appendChild(ic);
+
+  // 火曜日スケジュール
+  const tc=el("div","card");
+  tc.appendChild(el("div",null,{fontSize:"11px",fontWeight:700,color:"#6b7280",letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:"8px"},"📅 火曜日ペース目標"));
+  const ts=el("div",null,{maxHeight:"280px",overflowY:"auto"});
+  tu.forEach(d=>{
+    const tg=sc[d],ac=am[d],it=d===td(),ip=d<td(),df=ac!=null?(ac-tg).toFixed(1):null;
+    const row=el("div","grid3",{background:it?"#38bdf811":"none"});
+    row.appendChild(el("span",null,{fontSize:"11px",color:it?"#38bdf8":ip?"#4b5563":"#9ca3af",fontWeight:it?700:400},d+(it?" 🔵":"")));
+    row.appendChild(el("span",null,{fontSize:"11px",color:"#9ca3af",textAlign:"center"},`${tg}kg`));
+    if(ac!=null)row.appendChild(el("span",null,{fontSize:"11px",fontWeight:700,color:Number(df)<=0?"#22c55e":"#f87171",textAlign:"right"},`${ac}kg (${Number(df)>0?"+":""}${df})`));
+    else row.appendChild(el("span",null,{fontSize:"11px",color:"#374151",textAlign:"right"},ip?"未記録":"—"));
+    ts.appendChild(row);
+  });
+  tc.appendChild(ts);div.appendChild(tc);
+
+  // 記録一覧
+  if(S.wl.length){
+    const wc=el("div","card");
+    wc.appendChild(el("div",null,{fontSize:"11px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:"8px"},"記録一覧"));
+    S.wl.forEach(l=>{
+      const it=new Date(l.date+"T00:00:00").getDay()===2;
+      const row=el("div",null,{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:"1px solid #2a2a38"});
+      row.appendChild(el("span",null,{fontSize:"12px",color:it?"#38bdf8":"#9ca3af"},l.date+(it?" 🔵":"")));
+      row.appendChild(el("span",null,{fontSize:"15px",fontWeight:700,color:"#38bdf8"},`${l.bw}kg`));
+      row.appendChild(btn("ibtn","🗑",()=>{S.wl=S.wl.filter(x=>x.id!==l.id);lss("wt_wl",S.wl);draw();}));
+      wc.appendChild(row);
+    });
+    div.appendChild(wc);
+  }
+  return div;
+}
+
+// ======== MAXタブ ========
+function buildMax(){
+  const div=el("div","body");
+  if(S.ms)div.appendChild(el("div","badge",null,"✅ マックスを保存しました！"));
+  const ax=allEx();
+  const mc=el("div","card");
+  mc.appendChild(el("div",null,{fontSize:"11px",fontWeight:700,color:"#6b7280",textTransform:"uppercase",marginBottom:"10px"},"種目別マックス重量"));
+  const mr=el("div","row");
+  mr.appendChild(sel(ax,S.mx,v=>{S.mx=v;}));
+  const mi=document.createElement("input");
+  mi.className="inp";mi.type="text";mi.setAttribute("inputmode","decimal");
+  mi.placeholder="100";mi.value=S.mv;mi.style.flex="1";
+  mi.addEventListener("input",e=>{S.mv=e.target.value;});
+  mr.appendChild(mi);mc.appendChild(mr);
+  mc.appendChild(btn("pbtn","💪 マックスを保存",()=>{
+    const v=Number(S.mv);if(!v)return;
+    S.mr[S.mx]=v;lss("wt_mr",S.mr);S.mv="";S.ms=true;draw();
+    setTimeout(()=>{S.ms=false;draw();},2000);
+  }));
+  div.appendChild(mc);
+  if(!Object.keys(S.mr).length){div.appendChild(el("div","empty",null,el("div",null,{fontSize:"40px",marginBottom:"12px"},"💪"),el("div",null,{fontWeight:600},"まだ記録がありません")));return div;}
+  const rc=el("div","card");
+  Object.entries(S.mr).sort((a,b)=>b[1]-a[1]).forEach(([nm,kg])=>{
+    const row=el("div",null,{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:"1px solid #2a2a38"});
+    row.appendChild(el("div",null,{fontSize:"13px",fontWeight:700,color:"#e8e6f0"},nm));
+    const rv=el("div",null,{display:"flex",alignItems:"center",gap:"8px"});
+    rv.appendChild(el("span",null,{fontSize:"18px",fontWeight:900,color:"#c084fc"},String(kg),el("span",null,{fontSize:"11px",color:"#6b7280"},"kg")));
+    rv.appendChild(btn("ibtn","🗑",()=>{delete S.mr[nm];lss("wt_mr",S.mr);draw();}));
+    row.appendChild(rv);rc.appendChild(row);
+  });
+  div.appendChild(rc);return div;
+}
+
+// ======== グラフタブ ========
+function buildGraph(){
+  const ax=allEx();
+  if(!S.gx||!ax.includes(S.gx))S.gx=ax[0]||"";
+  const div=el("div","body");
+  const gc=el("div","card");
+  gc.appendChild(el("label","lbl",null,"種目"));
+  gc.appendChild(sel(ax,S.gx,v=>{S.gx=v;draw();}));
+  div.appendChild(gc);
+  const m={};
+  S.logs.forEach(l=>{(l.exs||[]).forEach(ex=>{if(ex.nm===S.gx){const mw=Math.max(...(ex.sets||[]).map(s=>Number(s.w)||0));if(!m[l.date]||m[l.date]<mw)m[l.date]=mw;}});});
+  const gd=Object.entries(m).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(gd.length<2){div.appendChild(el("div","empty",null,el("div",null,{fontSize:"40px",marginBottom:"12px"},"📈"),el("div",null,{fontWeight:600},"データが足りません"),el("div",null,{fontSize:"12px",marginTop:"6px"},"この種目を2回以上記録すると表示されます")));return div;}
+  const vals=gd.map(d=>d[1]),minV=Math.min(...vals),maxV=Math.max(...vals),rng=maxV-minV||1;
+  const W=300,H=130,pd=35;
+  const pts=gd.map((d,i)=>[pd+(W-pd*2)*(i/(gd.length-1)),H-pd-(H-pd*2)*((d[1]-minV)/rng),d[0],d[1]]);
+  const ns2=document.createElementNS.bind(document,"http://www.w3.org/2000/svg");
+  const svg=ns2("svg");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.style.width="100%";svg.style.display="block";
+  [0,1,2].forEach(i=>{
+    const y=pd+(H-pd*2)*(i/2),v=(maxV-rng*i/2).toFixed(1);
+    const ln=ns2("line");ln.setAttribute("x1",pd);ln.setAttribute("y1",y);ln.setAttribute("x2",W-pd);ln.setAttribute("y2",y);ln.setAttribute("stroke","#2a2a38");ln.setAttribute("stroke-dasharray","3 3");svg.appendChild(ln);
+    const tx=ns2("text");tx.setAttribute("x",pd-3);tx.setAttribute("y",y+4);tx.setAttribute("font-size","8");tx.setAttribute("fill","#6b7280");tx.setAttribute("text-anchor","end");tx.textContent=v;svg.appendChild(tx);
+  });
+  const pl=ns2("polyline");pl.setAttribute("points",pts.map(p=>`${p[0]},${p[1]}`).join(" "));pl.setAttribute("fill","none");pl.setAttribute("stroke","#c084fc");pl.setAttribute("stroke-width","2.5");svg.appendChild(pl);
+  pts.forEach(p=>{const c=ns2("circle");c.setAttribute("cx",p[0]);c.setAttribute("cy",p[1]);c.setAttribute("r","4");c.setAttribute("fill","#c084fc");svg.appendChild(c);});
+  [pts[0],pts[pts.length-1]].forEach(p=>{const tx=ns2("text");tx.setAttribute("x",p[0]);tx.setAttribute("y",H-3);tx.setAttribute("font-size","8");tx.setAttribute("fill","#6b7280");tx.setAttribute("text-anchor","middle");tx.textContent=p[2].slice(5);svg.appendChild(tx);});
+  const ch=el("div","card");
+  ch.appendChild(el("div",null,{fontSize:"12px",fontWeight:700,color:"#c084fc",marginBottom:"10px"},`${S.gx} — 最大重量の推移`));
+  ch.appendChild(svg);div.appendChild(ch);
+  const st=el("div",null,{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"8px"});
+  [["最大",maxV+"kg"],["記録",gd.length+"回"],["伸び",(gd[gd.length-1][1]-gd[0][1]>0?"+":"")+(gd[gd.length-1][1]-gd[0][1])+"kg"]].forEach(([l,v])=>{
+    const sc=el("div","card",{textAlign:"center",padding:"12px 6px",marginBottom:"0"});
+    sc.appendChild(el("div",null,{fontSize:"17px",fontWeight:800,color:"#c084fc"},v));
+    sc.appendChild(el("div",null,{fontSize:"10px",color:"#6b7280",marginTop:"3px"},l));
+    st.appendChild(sc);
+  });
+  div.appendChild(st);return div;
+}
+
+draw();
 </script>
 </body>
 </html>
